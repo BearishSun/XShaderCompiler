@@ -406,17 +406,23 @@ SamplerValuePtr HLSLParser::ParseSamplerValue()
     return ast;
 }
 
-StateValuePtr HLSLParser::ParseStateValue()
+StateValuePtr HLSLParser::ParseStateValue(bool literalOnly)
 {
     auto ast = Make<StateValue>();
 
-    /* Parse state name */
-    ast->name = ParseIdent();
+    if(literalOnly)
+    {
+        ast->value = ParseLiteralExpr();
+    }
+    else
+    {
+        /* Parse state name */
+        ast->name = ParseIdent();
 
-    /* Parse value expression */
-    Accept(Tokens::AssignOp, "=");
-    ast->value = ParseStateExpr();
-    Semi();
+        /* Parse value expression */
+        Accept(Tokens::AssignOp, "=");
+        ast->value = ParseStateExpr();
+    }
 
     return ast;
 }
@@ -1650,10 +1656,6 @@ ExprPtr HLSLParser::ParseStateExpr()
         return ParseLiteralExpr();
     if (Is(Tokens::LCurly))
         return ParseStateInitializerExpr();
-    if (Is(Tokens::Ident))
-    {
-        // TODO
-    }
 
     ErrorUnexpected(R_ExpectedPrimaryExpr, nullptr, true);
 
@@ -1770,12 +1772,24 @@ std::vector<SamplerValuePtr> HLSLParser::ParseSamplerValueList()
     return samplerValues;
 }
 
-std::vector<StateValuePtr> HLSLParser::ParseStateValueList()
+std::vector<StateValuePtr> HLSLParser::ParseStateValueList(bool literalList)
 {
     std::vector<StateValuePtr> stateValues;
 
     while (!Is(Tokens::RCurly))
-        stateValues.push_back(ParseStateValue());
+    {
+        stateValues.push_back(ParseStateValue(literalList));
+
+        if(literalList)
+        {
+            if(Is(Tokens::Comma))
+                AcceptIt();
+            else
+                break;
+        }
+        else
+            Semi();
+    }
 
     return stateValues;
 }
@@ -1798,7 +1812,10 @@ std::vector<AliasDeclPtr> HLSLParser::ParseAliasDeclList(TypeDenoterPtr typeDeno
 std::vector<StateValuePtr> HLSLParser::ParseStateInitializerList()
 {
     Accept(Tokens::LCurly);
-    auto exprs = ParseStateValueList();
+
+    // State values can be in "identifier = value;" form, or a list of un-named literals
+    bool literalList = IsLiteral();
+    auto exprs = ParseStateValueList(literalList);
     Accept(Tokens::RCurly);
     return exprs;
 }
