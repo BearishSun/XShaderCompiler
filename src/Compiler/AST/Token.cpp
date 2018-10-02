@@ -131,6 +131,10 @@ std::string Token::TypeToString(const Types type)
         case Types::VarArg:             return R_VarArgSpecifier;
         case Types::Misc:               return R_Misc;
         case Types::EndOfStream:        return R_EndOfStream;
+        case Types::RasterState:        return R_State("raster");
+        case Types::DepthState:         return R_State("depth");
+        case Types::StencilState:       return R_State("stencil");
+        case Types::BlendState:         return R_State("blend");
         default:                        return "";
     }
 }

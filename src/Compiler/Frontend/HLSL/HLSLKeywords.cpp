@@ -431,6 +431,26 @@ const KeywordMapType& HLSLKeywordsExtCg()
     return keywordMap;
 }
 
+/* ----- BSL Keywords ----- */
+
+static KeywordMapType GenerateBSLKeywordMap()
+{
+    using T = Token::Types;
+
+    return
+    {
+        { "raster",                  T::RasterState     },
+        { "depth",                   T::DepthState      },
+        { "stencil",                 T::StencilState    },
+        { "blend",                   T::BlendState      },
+    };
+}
+
+const KeywordMapType& BSLKeywords()
+{
+    static const auto keywordMap = GenerateBSLKeywordMap();
+    return keywordMap;
+}
 
 /* ----- DataType Mapping ----- */
 

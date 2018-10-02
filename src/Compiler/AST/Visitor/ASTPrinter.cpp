@@ -125,6 +125,15 @@ IMPLEMENT_VISIT_PROC(SamplerValue)
     PopPrintable();
 }
 
+IMPLEMENT_VISIT_PROC(StateValue)
+{
+    PushPrintable(ast, WriteLabel("StateValue"));
+    {
+        VISIT_MEMBER(value);
+    }
+    PopPrintable();
+}
+
 IMPLEMENT_VISIT_PROC(Register)
 {
     PushPrintable(ast, WriteLabel("Register"));
@@ -202,6 +211,27 @@ IMPLEMENT_VISIT_PROC(SamplerDecl)
     PopPrintable();
 }
 
+IMPLEMENT_VISIT_PROC(StateDecl)
+{
+    PushPrintable(ast, WriteLabel("StateDecl", ast));
+    {
+        ADD_PRINTABLE_MEMBER(ident);
+
+        std::string typeName;
+        switch(ast->GetStateType())
+        {
+        case StateType::Rasterizer: typeName = "raster"; break;
+        case StateType::Depth: typeName = "depth"; break;
+        case StateType::Stencil: typeName = "stencil"; break;
+        case StateType::Blend: typeName = "blend"; break;
+        }
+
+        Printable(ast, "stateType : " + typeName);
+        VISIT_MEMBER(initializer);
+    }
+    PopPrintable();
+}
+
 IMPLEMENT_VISIT_PROC(StructDecl)
 {
     PushPrintable(ast, WriteLabel("StructDecl", ast));
@@ -267,6 +297,15 @@ IMPLEMENT_VISIT_PROC(SamplerDeclStmnt)
     {
         VISIT_MEMBER(attribs);
         VISIT_MEMBER(samplerDecls);
+    }
+    PopPrintable();
+}
+
+IMPLEMENT_VISIT_PROC(StateDeclStmnt)
+{
+    PushPrintable(ast, WriteLabel("StateDeclStmnt"));
+    {
+        VISIT_MEMBER(attribs);
     }
     PopPrintable();
 }
@@ -567,6 +606,15 @@ IMPLEMENT_VISIT_PROC(CastExpr)
 IMPLEMENT_VISIT_PROC(InitializerExpr)
 {
     PushPrintable(ast, WriteLabel("InitializerExpr", ast));
+    {
+        VISIT_MEMBER(exprs);
+    }
+    PopPrintable();
+}
+
+IMPLEMENT_VISIT_PROC(StateInitializerExpr)
+{
+    PushPrintable(ast, WriteLabel("StateInitializerExpr", ast));
     {
         VISIT_MEMBER(exprs);
     }

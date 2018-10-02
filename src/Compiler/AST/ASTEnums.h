@@ -519,6 +519,18 @@ SamplerType TextureTypeToSamplerType(const BufferType t);
 // Converts a non-shadow sampler variant into a shadow one, if possible.
 SamplerType SamplerTypeToShadowSamplerType(const SamplerType t);
 
+/* ----- StateType Enum ----- */
+
+// State type enumeration.
+enum class StateType
+{
+    Undefined,
+
+    Rasterizer,
+    Depth,
+    Stencil,
+    Blend
+};
 
 /* ----- ImageLayoutFormat Enum ----- */
 

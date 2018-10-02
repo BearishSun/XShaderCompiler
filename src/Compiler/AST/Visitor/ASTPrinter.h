@@ -47,6 +47,7 @@ class ASTPrinter : private Visitor
         DECL_VISIT_PROC( Attribute         );
         DECL_VISIT_PROC( SwitchCase        );
         DECL_VISIT_PROC( SamplerValue      );
+        DECL_VISIT_PROC( StateValue        );
         DECL_VISIT_PROC( Register          );
         DECL_VISIT_PROC( PackOffset        );
         DECL_VISIT_PROC( ArrayDimension    );
@@ -58,6 +59,7 @@ class ASTPrinter : private Visitor
         DECL_VISIT_PROC( StructDecl        );
         DECL_VISIT_PROC( AliasDecl         );
         DECL_VISIT_PROC( FunctionDecl      );
+        DECL_VISIT_PROC( StateDecl         );
 
         DECL_VISIT_PROC( VarDeclStmnt      );
         DECL_VISIT_PROC( UniformBufferDecl );
@@ -65,6 +67,7 @@ class ASTPrinter : private Visitor
         DECL_VISIT_PROC( SamplerDeclStmnt  );
         DECL_VISIT_PROC( AliasDeclStmnt    );
         DECL_VISIT_PROC( BasicDeclStmnt    );
+        DECL_VISIT_PROC( StateDeclStmnt    );
 
         DECL_VISIT_PROC( NullStmnt         );
         DECL_VISIT_PROC( CodeBlockStmnt    );
@@ -93,6 +96,7 @@ class ASTPrinter : private Visitor
         DECL_VISIT_PROC( ArrayExpr         );
         DECL_VISIT_PROC( CastExpr          );
         DECL_VISIT_PROC( InitializerExpr   );
+        DECL_VISIT_PROC( StateInitializerExpr   );
 
         /* --- Helper functions --- */
         

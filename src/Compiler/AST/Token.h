@@ -144,6 +144,12 @@ class Token
 
             /* --- Special tokens --- */
             EndOfStream,        // End-of-stream
+
+            /* --- BSL tokens --- */
+            RasterState,        // raster
+            DepthState,         // depth
+            StencilState,       // stencil
+            BlendState,         // blend
         };
 
         Token(Token&& other);

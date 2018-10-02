@@ -91,6 +91,7 @@ DECL_REPORT( PPDirective,                       "preprocessor directive"        
 DECL_REPORT( PPDirectiveConcat,                 "preprocessor directive concatenation"                                                                          );
 DECL_REPORT( PPLineBreak,                       "preprocessor line break"                                                                                       );
 DECL_REPORT( EndOfStream,                       "end-of-stream"                                                                                                 );
+DECL_REPORT( State,                             "{0} state"                                                                                                     );
 
 /* ----- AST ----- */
 
@@ -201,6 +202,7 @@ DECL_REPORT( TooManySyntaxErrors,               "too many syntax errors"        
 DECL_REPORT( IdentNameManglingConflict,         "identifier '{0}' conflicts with reserved name mangling prefix '{1}'"                                           );
 DECL_REPORT( NotAllowedInThisContext,           "{0} not allowed in this context"                                                                               );
 DECL_REPORT( IntLiteralOutOfRange,              "integer literal[ '{0}'] is out of range"                                                                       );
+DECL_REPORT( ExpectedStateExpr,                 "expected a literal, identifier or a child state block expression"                                              );
 
 /* ----- PreProcessor ----- */
 

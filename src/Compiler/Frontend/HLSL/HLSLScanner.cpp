@@ -193,6 +193,20 @@ TokenPtr HLSLScanner::ScanIdentifier()
             return Make(it->second, spell);
     }
 
+    /* Scan BSL reserved words */
+    {
+        auto it = BSLKeywords().find(spell);
+        if (it != BSLKeywords().end())
+        {
+            if (it->second == Token::Types::Reserved)
+                Error(R_KeywordReservedForFutureUse(spell));
+            else if (it->second == Token::Types::Unsupported)
+                Error(R_KeywordNotSupportedYet(spell));
+            else
+                return Make(it->second, spell);
+        }
+    }
+
     /* Scan reserved extended words (if Cg keywords are enabled) */
     if (enableCgKeywords_)
     {

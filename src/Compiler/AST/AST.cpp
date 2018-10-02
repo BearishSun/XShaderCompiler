@@ -594,6 +594,17 @@ SamplerType SamplerDecl::GetSamplerType() const
     return (declStmntRef ? declStmntRef->typeDenoter->samplerType : SamplerType::Undefined);
 }
 
+/* ----- StateDecl ----- */
+
+TypeDenoterPtr StateDecl::DeriveTypeDenoter(const TypeDenoter* /*expectedTypeDenoter*/)
+{
+    return nullptr;
+}
+
+StateType StateDecl::GetStateType() const
+{
+    return (declStmntRef ? declStmntRef->type : StateType::Undefined);
+}
 
 /* ----- StructDecl ----- */
 
@@ -2484,6 +2495,11 @@ void InitializerExpr::UnrollElements()
             break;
         }
     }
+}
+
+TypeDenoterPtr StateInitializerExpr::DeriveTypeDenoter(const TypeDenoter* expectedTypeDenoter)
+{
+    return nullptr;
 }
 
 static ExprPtr FetchSubExprFromInitializerExpr(const InitializerExpr* ast, const std::vector<int>& arrayIndices, std::size_t layer)

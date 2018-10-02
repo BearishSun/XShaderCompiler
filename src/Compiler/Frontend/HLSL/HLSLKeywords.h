@@ -24,6 +24,9 @@ const KeywordMapType& HLSLKeywords();
 // Returns the keywords map extension for Cg (i.e. only the additional keywords that are only part of Cg, e.g. "fixed4").
 const KeywordMapType& HLSLKeywordsExtCg();
 
+// Returns the Keyword-to-Token map for BSL.
+const KeywordMapType& BSLKeywords();
+
 // Returns the data type for the specified HLSL keyword or throws an std::runtime_error on failure.
 DataType HLSLKeywordToDataType(const std::string& keyword);
 

@@ -406,6 +406,21 @@ SamplerValuePtr HLSLParser::ParseSamplerValue()
     return ast;
 }
 
+StateValuePtr HLSLParser::ParseStateValue()
+{
+    auto ast = Make<StateValue>();
+
+    /* Parse state name */
+    ast->name = ParseIdent();
+
+    /* Parse value expression */
+    Accept(Tokens::AssignOp, "=");
+    ast->value = ParseStateExpr();
+    Semi();
+
+    return ast;
+}
+
 AttributePtr HLSLParser::ParseAttribute()
 {
     Accept(Tokens::LParen);
@@ -604,6 +619,27 @@ SamplerDeclPtr HLSLParser::ParseSamplerDecl(SamplerDeclStmnt* declStmntRef, cons
         AcceptIt();
         ast->samplerValues = ParseSamplerValueList();
         Accept(Tokens::RCurly);
+    }
+
+    return ast;
+}
+
+StateDeclPtr HLSLParser::ParseStateDecl(StateDeclStmnt* declStmntRef)
+{
+    auto ast = Make<StateDecl>();
+
+    /* Store reference to parent node */
+    ast->declStmntRef = declStmntRef;
+
+    /* Parse properties */
+    if (Is(Tokens::AssignOp, "="))
+    {
+        AcceptIt();
+        ast->initializer = ParseStateInitializerExpr();
+    }
+    else if (Is(Tokens::LCurly))
+    {
+        ast->initializer = ParseStateInitializerExpr();
     }
 
     return ast;
@@ -845,6 +881,14 @@ StmntPtr HLSLParser::ParseGlobalStmntPrimary()
             return ParseUniformBufferDeclStmnt();
         case Tokens::Typedef:
             return ParseAliasDeclStmnt();
+        case Tokens::RasterState:
+            return ParseRasterStateDeclStmnt();
+        case Tokens::DepthState:
+            return ParseDepthStateDeclStmnt();
+        case Tokens::StencilState:
+            return ParseStencilStateDeclStmnt();
+        case Tokens::BlendState:
+            return ParseBlendStateDeclStmnt();
         case Tokens::Void:
         case Tokens::Inline:
             return ParseFunctionDeclStmnt();
@@ -1031,6 +1075,54 @@ AliasDeclStmntPtr HLSLParser::ParseAliasDeclStmnt()
     /* Store references in decls to this statement */
     for (auto& decl : ast->aliasDecls)
         decl->declStmntRef = ast.get();
+
+    return UpdateSourceArea(ast);
+}
+
+StateDeclStmntPtr HLSLParser::ParseRasterStateDeclStmnt()
+{
+    auto ast = Make<StateDeclStmnt>();
+
+    Accept(Tokens::RasterState);
+
+    ast->type = StateType::Rasterizer;
+    ast->declObject = ParseStateDecl(ast.get());
+
+    return UpdateSourceArea(ast);
+}
+
+StateDeclStmntPtr HLSLParser::ParseDepthStateDeclStmnt()
+{
+    auto ast = Make<StateDeclStmnt>();
+
+    Accept(Tokens::DepthState);
+
+    ast->type = StateType::Depth;
+    ast->declObject = ParseStateDecl(ast.get());
+
+    return UpdateSourceArea(ast);
+}
+
+StateDeclStmntPtr HLSLParser::ParseStencilStateDeclStmnt()
+{
+    auto ast = Make<StateDeclStmnt>();
+
+    Accept(Tokens::StencilState);
+
+    ast->type = StateType::Stencil;
+    ast->declObject = ParseStateDecl(ast.get());
+
+    return UpdateSourceArea(ast);
+}
+
+StateDeclStmntPtr HLSLParser::ParseBlendStateDeclStmnt()
+{
+    auto ast = Make<StateDeclStmnt>();
+
+    Accept(Tokens::BlendState);
+
+    ast->type = StateType::Blend;
+    ast->declObject = ParseStateDecl(ast.get());
 
     return UpdateSourceArea(ast);
 }
@@ -1552,6 +1644,30 @@ CallExprPtr HLSLParser::ParseCallExprAsTypeCtor(const TypeDenoterPtr& typeDenote
     return UpdateSourceArea(ast);
 }
 
+ExprPtr HLSLParser::ParseStateExpr()
+{
+    if (IsLiteral())
+        return ParseLiteralExpr();
+    if (Is(Tokens::LCurly))
+        return ParseStateInitializerExpr();
+    if (Is(Tokens::Ident))
+    {
+        // TODO
+    }
+
+    ErrorUnexpected(R_ExpectedPrimaryExpr, nullptr, true);
+
+    return nullptr;
+}
+
+StateInitializerExprPtr HLSLParser::ParseStateInitializerExpr()
+{
+    /* Parse initializer list expression */
+    auto ast = Make<StateInitializerExpr>();
+    ast->exprs = ParseStateInitializerList();
+    return UpdateSourceArea(ast);
+}
+
 /* --- Lists --- */
 
 std::vector<StmntPtr> HLSLParser::ParseGlobalStmntList()
@@ -1654,6 +1770,16 @@ std::vector<SamplerValuePtr> HLSLParser::ParseSamplerValueList()
     return samplerValues;
 }
 
+std::vector<StateValuePtr> HLSLParser::ParseStateValueList()
+{
+    std::vector<StateValuePtr> stateValues;
+
+    while (!Is(Tokens::RCurly))
+        stateValues.push_back(ParseStateValue());
+
+    return stateValues;
+}
+
 std::vector<AliasDeclPtr> HLSLParser::ParseAliasDeclList(TypeDenoterPtr typeDenoter)
 {
     std::vector<AliasDeclPtr> aliasDecls;
@@ -1667,6 +1793,14 @@ std::vector<AliasDeclPtr> HLSLParser::ParseAliasDeclList(TypeDenoterPtr typeDeno
     }
 
     return aliasDecls;
+}
+
+std::vector<StateValuePtr> HLSLParser::ParseStateInitializerList()
+{
+    Accept(Tokens::LCurly);
+    auto exprs = ParseStateValueList();
+    Accept(Tokens::RCurly);
+    return exprs;
 }
 
 /* --- Others --- */

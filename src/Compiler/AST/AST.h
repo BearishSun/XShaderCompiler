@@ -106,6 +106,7 @@ struct AST
         Attribute,
         SwitchCase,
         SamplerValue,
+        StateValue,
         Register,           // Register qualifier (e.g. "register(b0)")
         PackOffset,         // Pack-offset qualifier (e.g. "packoffset(c0.x)")
         ArrayDimension,     // Array dimension (e.g. "[10]")
@@ -120,6 +121,7 @@ struct AST
         AliasDecl,          // Type alias declaration
         FunctionDecl,       // Function declaration
         UniformBufferDecl,  // Uniform/constant buffer declaration
+        StateDecl,          // Rasterizer/Blend/Stencil/Depth state
 
         /* ----- Declaration statements ----- */
 
@@ -128,6 +130,7 @@ struct AST
         SamplerDeclStmnt,   // Sampler declaration statement with several samplers (SamplerDecl)
         AliasDeclStmnt,     // Type alias declaration statement with several types (AliasDecl)
         BasicDeclStmnt,     // Statement with a single declaration object (StructDecl, FunctionDecl, or UniformBufferDecl)
+        StateDeclStmnt,     // Statement for a programmable state (StateDecl)
 
         /* ----- Common statements ----- */
 
@@ -159,7 +162,9 @@ struct AST
         AssignExpr,
         ArrayExpr,
         CastExpr,
+        StateInitializerExpr,
         InitializerExpr,
+
     };
 
     virtual ~AST();
@@ -410,6 +415,15 @@ struct SamplerValue : public AST
     ExprPtr     value;  // Sampler state value expression.
 };
 
+// Non-programmable state value assignment
+struct StateValue : public AST
+{
+    AST_INTERFACE(StateValue);
+
+    std::string name;   // Property name.
+    ExprPtr     value;  // Property value expression.
+};
+
 // Attribute (e.g. "[unroll]" or "[numthreads(x,y,z)]").
 struct Attribute : public AST
 {
@@ -651,6 +665,20 @@ struct SamplerDecl : public Decl
     // BEGIN BANSHEE CHANGES
     std::string                     alias;
     // END BANSHEE CHANGES
+};
+
+// Non-programmable state declaration
+struct StateDecl : public Decl
+{
+    AST_INTERFACE(StateDecl)
+
+    TypeDenoterPtr DeriveTypeDenoter(const TypeDenoter* expectedTypeDenoter) override;
+
+    // Returns the state type of the parent's node type denoter.
+    StateType GetStateType() const;
+
+    StateInitializerExprPtr       initializer;
+    StateDeclStmnt*               declStmntRef    = nullptr;  // Reference to its declaration statmenet (parent node).
 };
 
 // StructDecl object.
@@ -911,6 +939,15 @@ struct SamplerDeclStmnt : public Stmnt
 
     SamplerTypeDenoterPtr       typeDenoter;    // Own type denoter.
     std::vector<SamplerDeclPtr> samplerDecls;   // Sampler declaration list.
+};
+
+// State declaration.
+struct StateDeclStmnt : public Stmnt
+{
+    AST_INTERFACE(StateDeclStmnt);
+
+    StateType                   type            = StateType::Undefined;
+    StateDeclPtr                declObject;                                 // Declaration object.
 };
 
 // Basic declaration statement.
@@ -1406,6 +1443,15 @@ struct InitializerExpr : public Expr
     std::vector<ExprPtr> exprs; // Sub expression list.
 };
 
+// State initializer list expression.
+struct StateInitializerExpr : public Expr
+{
+    AST_INTERFACE(StateInitializerExpr);
+
+    TypeDenoterPtr DeriveTypeDenoter(const TypeDenoter* expectedTypeDenoter) override;
+
+    std::vector<StateValuePtr> exprs; // Sub expression list.
+};
 
 #undef AST_INTERFACE
 #undef DECL_AST_ALIAS

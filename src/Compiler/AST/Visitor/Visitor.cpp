@@ -49,6 +49,11 @@ IMPLEMENT_VISIT_PROC(SamplerValue)
     Visit(ast->value);
 }
 
+IMPLEMENT_VISIT_PROC(StateValue)
+{
+    Visit(ast->value);
+}
+
 IMPLEMENT_VISIT_PROC(Register)
 {
     // do nothing
@@ -118,6 +123,11 @@ IMPLEMENT_VISIT_PROC(UniformBufferDecl)
     Visit(ast->localStmnts);
 }
 
+IMPLEMENT_VISIT_PROC(StateDecl)
+{
+    Visit(ast->initializer);
+}
+
 /* --- Declaration statements --- */
 
 IMPLEMENT_VISIT_PROC(BufferDeclStmnt)
@@ -147,6 +157,12 @@ IMPLEMENT_VISIT_PROC(AliasDeclStmnt)
 }
 
 IMPLEMENT_VISIT_PROC(BasicDeclStmnt)
+{
+    Visit(ast->attribs);
+    Visit(ast->declObject);
+}
+
+IMPLEMENT_VISIT_PROC(StateDeclStmnt)
 {
     Visit(ast->attribs);
     Visit(ast->declObject);
@@ -306,6 +322,11 @@ IMPLEMENT_VISIT_PROC(CastExpr)
 }
 
 IMPLEMENT_VISIT_PROC(InitializerExpr)
+{
+    Visit(ast->exprs);
+}
+
+IMPLEMENT_VISIT_PROC(StateInitializerExpr)
 {
     Visit(ast->exprs);
 }

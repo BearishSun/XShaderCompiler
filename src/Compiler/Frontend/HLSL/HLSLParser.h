@@ -102,6 +102,7 @@ class HLSLParser : public SLParser
         VarDeclPtr                      ParseVarDecl(VarDeclStmnt* declStmntRef, const TokenPtr& identTkn = nullptr) override;
 
         SamplerValuePtr                 ParseSamplerValue();
+        StateValuePtr                   ParseStateValue();
         AttributePtr                    ParseAttribute();
         RegisterPtr                     ParseRegister(bool parseColon = true);
         PackOffsetPtr                   ParsePackOffset(bool parseColon = true);
@@ -109,6 +110,7 @@ class HLSLParser : public SLParser
 
         BufferDeclPtr                   ParseBufferDecl(BufferDeclStmnt* declStmntRef, const TokenPtr& identTkn = nullptr);
         SamplerDeclPtr                  ParseSamplerDecl(SamplerDeclStmnt* declStmntRef, const TokenPtr& identTkn = nullptr);
+        StateDeclPtr                    ParseStateDecl(StateDeclStmnt* declStmntRef);
         StructDeclPtr                   ParseStructDecl(bool parseStructTkn = true, const TokenPtr& identTkn = nullptr);
         AliasDeclPtr                    ParseAliasDecl(TypeDenoterPtr typeDenoter);
         FunctionDeclPtr                 ParseFunctionDecl(BasicDeclStmnt* declStmntRef, const TypeSpecifierPtr& returnType = nullptr, const TokenPtr& identTkn = nullptr);
@@ -125,6 +127,10 @@ class HLSLParser : public SLParser
         SamplerDeclStmntPtr             ParseSamplerDeclStmnt(const SamplerTypeDenoterPtr& typeDenoter = nullptr, const TokenPtr& identTkn = nullptr);
         VarDeclStmntPtr                 ParseVarDeclStmnt();
         AliasDeclStmntPtr               ParseAliasDeclStmnt();
+        StateDeclStmntPtr               ParseRasterStateDeclStmnt();
+        StateDeclStmntPtr               ParseDepthStateDeclStmnt();
+        StateDeclStmntPtr               ParseStencilStateDeclStmnt();
+        StateDeclStmntPtr               ParseBlendStateDeclStmnt();
 
         StmntPtr                        ParseStmnt(bool allowAttributes = true);
         StmntPtr                        ParseStmntPrimary();
@@ -146,6 +152,8 @@ class HLSLParser : public SLParser
         CallExprPtr                     ParseCallExpr(const ObjectExprPtr& objectExpr = nullptr, const TypeDenoterPtr& typeDenoter = nullptr);
         CallExprPtr                     ParseCallExprWithPrefixOpt(const ExprPtr& prefixExpr = nullptr, bool isStatic = false, const TokenPtr& identTkn = nullptr);
         CallExprPtr                     ParseCallExprAsTypeCtor(const TypeDenoterPtr& typeDenoter);
+        ExprPtr                         ParseStateExpr();
+        StateInitializerExprPtr         ParseStateInitializerExpr();
 
         std::vector<StmntPtr>           ParseGlobalStmntList();
         std::vector<VarDeclStmntPtr>    ParseAnnotationList();
@@ -154,7 +162,9 @@ class HLSLParser : public SLParser
         std::vector<BufferDeclPtr>      ParseBufferDeclList(BufferDeclStmnt* declStmntRef, const TokenPtr& identTkn = nullptr);
         std::vector<SamplerDeclPtr>     ParseSamplerDeclList(SamplerDeclStmnt* declStmntRef, const TokenPtr& identTkn = nullptr);
         std::vector<SamplerValuePtr>    ParseSamplerValueList();
+        std::vector<StateValuePtr>      ParseStateValueList();
         std::vector<AliasDeclPtr>       ParseAliasDeclList(TypeDenoterPtr typeDenoter);
+        std::vector<StateValuePtr>      ParseStateInitializerList();
 
         std::string                     ParseIdentWithNamespaceOpt(ObjectExprPtr& namespaceExpr, TokenPtr identTkn = nullptr, SourceArea* area = nullptr);
 
