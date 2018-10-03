@@ -34,6 +34,13 @@ class ReflectionPrinter
         void PrintReflectionObjects(const std::vector<Reflection::BindingSlot>& objects, const std::string& title);
         void PrintReflectionObjects(const std::vector<std::string>& idents, const std::string& title);
         void PrintReflectionObjects(const std::map<std::string, Reflection::SamplerState>& samplerStates, const std::string& title);
+        void PrintReflectionObject(const Reflection::RasterizerState& state, const std::string& title);
+        void PrintReflectionObject(const Reflection::DepthState& state, const std::string& title);
+        void PrintReflectionObject(const Reflection::StencilState& state, const std::string& title);
+        void PrintReflectionObject(const Reflection::BlendState& state, const std::string& title);
+        void PrintReflectionObject(const Reflection::BlendStateTarget& state);
+        void PrintReflectionObject(const Reflection::StencilOperation& state);
+        void PrintReflectionObject(const Reflection::BlendOperation& state);
         void PrintReflectionAttribute(const Reflection::NumThreads& numThreads, const std::string& title);
 
         std::ostream&   output_;

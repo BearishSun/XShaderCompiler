@@ -203,6 +203,9 @@ DECL_REPORT( IdentNameManglingConflict,         "identifier '{0}' conflicts with
 DECL_REPORT( NotAllowedInThisContext,           "{0} not allowed in this context"                                                                               );
 DECL_REPORT( IntLiteralOutOfRange,              "integer literal[ '{0}'] is out of range"                                                                       );
 DECL_REPORT( ExpectedStateExpr,                 "expected a literal, identifier or a child state block expression"                                              );
+DECL_REPORT( ExpectedStateKeyword,              "expected a state keyword"                                                                                      );
+DECL_REPORT( UnknownStateKeyword,               "provided keyword is not a valid '{0}' state keyword"                                                           );
+DECL_REPORT( ExpectedStateInitializerExpr,      "expected state initializer expression"                                                                         );
 
 /* ----- PreProcessor ----- */
 

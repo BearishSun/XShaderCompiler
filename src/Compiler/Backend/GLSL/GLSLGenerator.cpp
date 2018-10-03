@@ -482,6 +482,11 @@ IMPLEMENT_VISIT_PROC(SamplerDecl)
     WriteSamplerDecl(*ast);
 }
 
+IMPLEMENT_VISIT_PROC(StateDecl)
+{
+    // Do nothing
+}
+
 /* --- Declaration statements --- */
 
 IMPLEMENT_VISIT_PROC(FunctionDecl)

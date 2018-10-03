@@ -49,6 +49,12 @@ void ReflectionAnalyzer::Warning(const std::string& msg, const AST* ast)
         reportHandler_.Warning(false, msg, program_->sourceCode.get(), (ast ? ast->area : SourceArea::ignore));
 }
 
+void ReflectionAnalyzer::Error(const std::string& msg, const AST* ast)
+{
+    reportHandler_.SubmitReport(false, ReportTypes::Error, R_Error, msg, program_->sourceCode.get(), 
+        (ast ? ast->area : SourceArea::ignore));
+}
+
 int ReflectionAnalyzer::GetBindingPoint(const std::vector<RegisterPtr>& slotRegisters) const
 {
     if (auto slotRegister = Register::GetForTarget(slotRegisters, shaderTarget_))
@@ -131,6 +137,38 @@ IMPLEMENT_VISIT_PROC(SamplerDecl)
     data_->uniforms.push_back(uniform);
 
     // END BANSHEE CHANGES
+}
+
+IMPLEMENT_VISIT_PROC(StateDecl)
+{
+    if(!ast->initializer)
+        return;
+
+    switch(ast->GetStateType())
+    {
+    case StateType::Rasterizer: 
+        for(auto& value : ast->initializer->exprs)
+            ReflectRasterizerStateValue(value.get(), data_->rasterizerState);
+        break;
+    case StateType::Depth:
+        for(auto& value : ast->initializer->exprs)
+            ReflectDepthStateValue(value.get(), data_->depthState);
+        break;
+    case StateType::Stencil:
+        for(auto& value : ast->initializer->exprs)
+            ReflectStencilStateValue(value.get(), data_->stencilState);
+        break;
+    case StateType::Blend:
+    {
+        uint32_t blendTargetIdx = 0;
+        for(auto& value : ast->initializer->exprs)
+            ReflectBlendStateValue(value.get(), data_->blendState, blendTargetIdx);
+        break;
+    }
+    default:
+    case StateType::Undefined: 
+        break;
+    }
 }
 
 /* --- Declaration statements --- */
@@ -657,7 +695,7 @@ void ReflectionAnalyzer::ReflectSamplerValue(SamplerValue* ast, Reflection::Samp
         else if (name == "AddressW")
             ReflectSamplerValueTextureAddressMode(value, samplerState.addressW, ast);
         else if (name == "ComparisonFunc")
-            ReflectSamplerValueComparisonFunc(value, samplerState.comparisonFunc, ast);
+            ReflectComparisonFunc(value, samplerState.comparisonFunc, ast);
     }
     else if (name == "BorderColor")
     {
@@ -700,6 +738,346 @@ void ReflectionAnalyzer::ReflectSamplerValue(SamplerValue* ast, Reflection::Samp
     }
 }
 
+void ReflectionAnalyzer::ReflectStencilOperationValue(StateValue* ast, Reflection::StencilOperation& stencilOperation)
+{
+    const auto& name = ast->name;
+
+    if (auto objectExpr = ast->value->As<ObjectExpr>())
+    {
+        const auto& value = objectExpr->ident;
+
+        if (name == "fail")
+            ReflectStencilOpType(value, stencilOperation.fail, ast);
+        else if (name == "zfail")
+            ReflectStencilOpType(value, stencilOperation.zfail, ast);
+        else if (name == "pass")
+            ReflectStencilOpType(value, stencilOperation.pass, ast);
+        else if (name == "compare")
+            ReflectComparisonFunc(value, stencilOperation.compareFunc, ast);
+        else
+            Error(R_UnknownStateKeyword("stencil operation"), ast);
+    }
+    else
+        Error(R_ExpectedStateKeyword, ast);
+}
+
+void ReflectionAnalyzer::ReflectBlendOperationValue(StateValue* ast, Reflection::BlendOperation& blendOperation)
+{
+    const auto& name = ast->name;
+
+    if (auto objectExpr = ast->value->As<ObjectExpr>())
+    {
+        const auto& value = objectExpr->ident;
+
+        if (name == "source")
+            ReflectBlendFactor(value, blendOperation.source, ast);
+        else if (name == "dest")
+            ReflectBlendFactor(value, blendOperation.destination, ast);
+        else if (name == "op")
+            ReflectBlendOpType(value, blendOperation.operation, ast);
+        else
+            Error(R_UnknownStateKeyword("blend operation"), ast);
+    }
+    else
+        Error(R_ExpectedStateKeyword, ast);
+}
+
+void ReflectionAnalyzer::ReflectBlendStateTargetValue(StateValue* ast, Reflection::BlendStateTarget& blendStateTarget)
+{
+    const auto& name = ast->name;
+
+    if (name == "enabled")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            blendStateTarget.enabled = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "writemask")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            blendStateTarget.writeMask = (int8_t)variant.Int();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "color")
+    {
+        if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
+        {
+            for (auto& expr : stateInitializerExpr->exprs)
+                ReflectBlendOperationValue(expr.get(), blendStateTarget.colorOp);
+        }
+        else
+            Error(R_ExpectedStateInitializerExpr, ast);
+    }
+    else if (name == "alpha")
+    {
+        if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
+        {
+            for (auto& expr : stateInitializerExpr->exprs)
+                ReflectBlendOperationValue(expr.get(), blendStateTarget.alphaOp);
+        }
+        else
+            Error(R_ExpectedStateInitializerExpr, ast);
+    }
+    else if (name == "index")
+    {
+        // Ignore, parsed elsewhere
+    }
+    else
+        Error(R_UnknownStateKeyword("blend target"), ast);
+}
+
+void ReflectionAnalyzer::ReflectRasterizerStateValue(StateValue* ast, Reflection::RasterizerState& rasterizerState)
+{
+    const auto& name = ast->name;
+
+    if (name == "scissor")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            rasterizerState.scissorEnable = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "multisample")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            rasterizerState.multisampleEnable = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "lineaa")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            rasterizerState.antialisedLineEnable = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "fill")
+    {
+        if (auto objectExpr = ast->value->As<ObjectExpr>())
+            ReflectFillMode(objectExpr->ident, rasterizerState.fillMode, ast);
+        else
+            Error(R_ExpectedStateKeyword, ast);
+    }
+    else if (name == "cull")
+    {
+        if (auto objectExpr = ast->value->As<ObjectExpr>())
+            ReflectCullMode(objectExpr->ident, rasterizerState.cullMode, ast);
+        else
+            Error(R_ExpectedStateKeyword, ast);
+    }
+    else
+        Error(R_UnknownStateKeyword("rasterizer"), ast);
+}
+
+void ReflectionAnalyzer::ReflectDepthStateValue(StateValue* ast, Reflection::DepthState& depthState)
+{
+    const auto& name = ast->name;
+
+    if (name == "read")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            depthState.readEnable = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "write")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            depthState.writeEnable = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "compare")
+    {
+        if (auto objectExpr = ast->value->As<ObjectExpr>())
+            ReflectComparisonFunc(objectExpr->ident, depthState.compareFunc, ast);
+        else
+            Error(R_ExpectedStateKeyword, ast);
+    }
+    else if (name == "bias")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            depthState.depthBias = (float)variant.Real();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "scaledBias")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            depthState.scaledDepthBias = (float)variant.Real();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "clip")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            depthState.depthClip = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else
+        Error(R_UnknownStateKeyword("depth"), ast);
+}
+
+void ReflectionAnalyzer::ReflectStencilStateValue(StateValue* ast, Reflection::StencilState& stencilState)
+{
+    const auto& name = ast->name;
+
+    if (name == "enabled")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            stencilState.enabled = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "reference")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            stencilState.reference = (int32_t)variant.Int();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "readmask")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            stencilState.readMask = (int8_t)variant.Int();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "writemask")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            stencilState.writeMask = (int8_t)variant.Int();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "back")
+    {
+        if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
+        {
+            for (auto& expr : stateInitializerExpr->exprs)
+                ReflectStencilOperationValue(expr.get(), stencilState.back);
+        }
+        else
+            Error(R_ExpectedStateInitializerExpr, ast);
+    }
+    else if (name == "front")
+    {
+        if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
+        {
+            for (auto& expr : stateInitializerExpr->exprs)
+                ReflectStencilOperationValue(expr.get(), stencilState.front);
+        }
+        else
+            Error(R_ExpectedStateInitializerExpr, ast);
+    }
+    else
+        Error(R_UnknownStateKeyword("stencil"), ast);
+}
+
+void ReflectionAnalyzer::ReflectBlendStateValue(StateValue* ast, Reflection::BlendState& blendState, uint32_t& blendTargetIdx)
+{
+    const auto& name = ast->name;
+
+    if (name == "dither")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            blendState.alphaToCoverage = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "independant")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            blendState.independantBlend = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "target")
+    {
+        if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
+        {
+            // First look for an explicit target index
+            for (auto& expr : stateInitializerExpr->exprs)
+            {
+                const auto& name = expr->name;
+                if(name == "index")
+                {
+                    if (auto literalExpr = expr->value->As<LiteralExpr>())
+                    {
+                        auto variant = Variant::ParseFrom(literalExpr->value);
+                        blendTargetIdx = (uint32_t)variant.Int();
+                    }
+                    else
+                        Error(R_ExpectedLiteralExpr, expr->value.get());
+                }
+            }
+
+            if(blendTargetIdx < Reflection::BlendState::MAX_NUM_RENDER_TARGETS)
+            {
+                for (auto& expr : stateInitializerExpr->exprs)
+                    ReflectBlendStateTargetValue(expr.get(), blendState.targets[blendTargetIdx]);
+
+                blendTargetIdx++;
+            }
+        }
+        else
+            Error(R_ExpectedStateInitializerExpr, ast);
+    }
+    else
+        Error(R_UnknownStateKeyword("blend"), ast);
+}
+
 void ReflectionAnalyzer::ReflectSamplerValueFilter(const std::string& value, Reflection::Filter& filter, const AST* ast)
 {
     try
@@ -708,7 +1086,67 @@ void ReflectionAnalyzer::ReflectSamplerValueFilter(const std::string& value, Ref
     }
     catch (const std::invalid_argument& e)
     {
-        Warning(e.what(), ast);
+        Error(e.what(), ast);
+    }
+}
+
+void ReflectionAnalyzer::ReflectBlendFactor(const std::string& value, Reflection::BlendFactor& blendFactor, const AST* ast)
+{
+    try
+    {
+        blendFactor = StringToBlendFactor(value);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        Error(e.what(), ast);
+    }
+}
+
+void ReflectionAnalyzer::ReflectBlendOpType(const std::string& value, Reflection::BlendOpType& blendOp, const AST* ast)
+{
+    try
+    {
+        blendOp = StringToBlendOpType(value);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        Error(e.what(), ast);
+    }
+}
+
+void ReflectionAnalyzer::ReflectCullMode(const std::string& value, Reflection::CullMode& cullMode, const AST* ast)
+{
+    try
+    {
+        cullMode = StringToCullMode(value);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        Error(e.what(), ast);
+    }
+}
+
+void ReflectionAnalyzer::ReflectFillMode(const std::string& value, Reflection::FillMode& fillMode, const AST* ast)
+{
+    try
+    {
+        fillMode = StringToFillMode(value);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        Error(e.what(), ast);
+    }
+}
+
+void ReflectionAnalyzer::ReflectStencilOpType(const std::string& value, Reflection::StencilOpType& stencilOp, const AST* ast)
+{
+    try
+    {
+        stencilOp = StringToStencilOpType(value);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        Error(e.what(), ast);
     }
 }
 
@@ -724,7 +1162,7 @@ void ReflectionAnalyzer::ReflectSamplerValueTextureAddressMode(const std::string
     }
 }
 
-void ReflectionAnalyzer::ReflectSamplerValueComparisonFunc(const std::string& value, Reflection::ComparisonFunc& comparisonFunc, const AST* ast)
+void ReflectionAnalyzer::ReflectComparisonFunc(const std::string& value, Reflection::ComparisonFunc& comparisonFunc, const AST* ast)
 {
     try
     {

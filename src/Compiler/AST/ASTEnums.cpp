@@ -1544,7 +1544,7 @@ Reflection::TextureAddressMode StringToTexAddressMode(const std::string& s)
 }
 
 
-/* ----- SamplerState::ComparisonFunc Enum ----- */
+/* ----- ComparisonFunc Enum ----- */
 
 namespace DetailsMap2
 {
@@ -1567,15 +1567,161 @@ static const std::map<std::string, T> g_mapCompareFunc
 
 std::string CompareFuncToString(const Reflection::ComparisonFunc t)
 {
-    return TypeToStringSecondary(DetailsMap2::g_mapCompareFunc, t, "SamplerState::ComparisonFunc");
+    return TypeToStringSecondary(DetailsMap2::g_mapCompareFunc, t, "ComparisonFunc");
 }
 
 Reflection::ComparisonFunc StringToCompareFunc(const std::string& s)
 {
-    return StringToTypeSecondary(DetailsMap2::g_mapCompareFunc, s, "SamplerState::ComparisonFunc");
+    return StringToTypeSecondary(DetailsMap2::g_mapCompareFunc, s, "ComparisonFunc");
 }
 
 
+/* ----- BlendFactor Enum ----- */
+
+namespace DetailsMap3
+{
+
+using T = Reflection::BlendFactor;
+
+static const std::map<std::string, T> g_mapCompareFunc
+{
+    { "one",            T::One                  },
+    { "zero",           T::Zero                 },
+    { "dstRGB",         T::DestinationRGB       },
+    { "srcRGB",         T::SourceRGB            },
+    { "dstIRGB",        T::DestinationInvRGB    },
+    { "srcIRGB",        T::SourceInvRGB         },
+    { "dstA",           T::DestinationA         },
+    { "srcA",           T::SourceA              },
+    { "dstIA",          T::DestinationInvA      },
+    { "srcIA",          T::SourceInvA           },
+};
+
+} // /namespace DetailsMap3
+
+std::string BlendFactorToString(const Reflection::BlendFactor t)
+{
+    return TypeToStringSecondary(DetailsMap3::g_mapCompareFunc, t, "BlendFactor");
+}
+
+Reflection::BlendFactor StringToBlendFactor(const std::string& s)
+{
+    return StringToTypeSecondary(DetailsMap3::g_mapCompareFunc, s, "BlendFactor");
+}
+
+
+/* ----- BlendOpType Enum ----- */
+
+namespace DetailsMap4
+{
+
+using T = Reflection::BlendOpType;
+
+static const std::map<std::string, T> g_mapCompareFunc
+{
+    { "add",            T::Add                  },
+    { "sub",            T::Subtract             },
+    { "rsub",           T::ReverseSubtract      },
+    { "min",            T::Minimum              },
+    { "max",            T::Maximum              },
+};
+
+} // /namespace DetailsMap4
+
+std::string BlendOpTypeToString(const Reflection::BlendOpType t)
+{
+    return TypeToStringSecondary(DetailsMap4::g_mapCompareFunc, t, "BlendOpType");
+}
+
+Reflection::BlendOpType StringToBlendOpType(const std::string& s)
+{
+    return StringToTypeSecondary(DetailsMap4::g_mapCompareFunc, s, "BlendOpType");
+}
+
+
+/* ----- StencilOpType Enum ----- */
+
+namespace DetailsMap5
+{
+
+using T = Reflection::StencilOpType;
+
+static const std::map<std::string, T> g_mapCompareFunc
+{
+    { "keep",           T::Keep                 },
+    { "zero",           T::Zero                 },
+    { "replace",        T::Replace              },
+    { "inc",            T::Increment            },
+    { "dec",            T::Decrement            },
+    { "incwrap",        T::IncrementWrap        },
+    { "decwrap",        T::DecrementWrap        },
+    { "inverse",        T::Inverse              },
+};
+
+} // /namespace DetailsMap5
+
+std::string StencilOpTypeToString(const Reflection::StencilOpType t)
+{
+    return TypeToStringSecondary(DetailsMap5::g_mapCompareFunc, t, "StencilOpType");
+}
+
+Reflection::StencilOpType StringToStencilOpType(const std::string& s)
+{
+    return StringToTypeSecondary(DetailsMap5::g_mapCompareFunc, s, "StencilOpType");
+}
+
+
+/* ----- CullMode Enum ----- */
+
+namespace DetailsMap6
+{
+
+using T = Reflection::CullMode;
+
+static const std::map<std::string, T> g_mapCompareFunc
+{
+    { "cw",           T::Clockwise              },
+    { "ccw",          T::CounterClockwise       },
+    { "none",        T::None                    },
+};
+
+} // /namespace DetailsMap6
+
+std::string CullModeToString(const Reflection::CullMode t)
+{
+    return TypeToStringSecondary(DetailsMap6::g_mapCompareFunc, t, "CullMode");
+}
+
+Reflection::CullMode StringToCullMode(const std::string& s)
+{
+    return StringToTypeSecondary(DetailsMap6::g_mapCompareFunc, s, "CullMode");
+}
+
+
+/* ----- FillMode Enum ----- */
+
+namespace DetailsMap7
+{
+
+using T = Reflection::FillMode;
+
+static const std::map<std::string, T> g_mapCompareFunc
+{
+    { "solid",          T::Solid            },
+    { "wire",           T::Wire             },
+};
+
+} // /namespace DetailsMap7
+
+std::string FillModeToString(const Reflection::FillMode t)
+{
+    return TypeToStringSecondary(DetailsMap7::g_mapCompareFunc, t, "FillMode");
+}
+
+Reflection::FillMode StringToFillMode(const std::string& s)
+{
+    return StringToTypeSecondary(DetailsMap7::g_mapCompareFunc, s, "FillMode");
+}
 } // /namespace Xsc
 
 

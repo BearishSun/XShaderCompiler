@@ -220,6 +220,11 @@ IMPLEMENT_VISIT_PROC(SamplerDecl)
     Visit(ast->arrayDims);
 }
 
+IMPLEMENT_VISIT_PROC(StateDecl)
+{
+    /* Do nothing */
+}
+
 IMPLEMENT_VISIT_PROC(StructDecl)
 {
     /* Find base struct-decl */

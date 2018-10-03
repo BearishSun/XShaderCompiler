@@ -43,6 +43,7 @@ class ReflectionAnalyzer : private Visitor
     private:
         
         void Warning(const std::string& msg, const AST* ast = nullptr);
+        void Error(const std::string& msg, const AST* ast = nullptr);
 
         int GetBindingPoint(const std::vector<RegisterPtr>& slotRegisters) const;
 
@@ -54,6 +55,7 @@ class ReflectionAnalyzer : private Visitor
         DECL_VISIT_PROC( Program           );
 
         DECL_VISIT_PROC( SamplerDecl       );
+        DECL_VISIT_PROC( StateDecl         );
 
         DECL_VISIT_PROC( FunctionDecl      );
         DECL_VISIT_PROC( UniformBufferDecl );
@@ -68,7 +70,21 @@ class ReflectionAnalyzer : private Visitor
         void ReflectSamplerValue(SamplerValue* ast, Reflection::SamplerState& samplerState);
         void ReflectSamplerValueFilter(const std::string& value, Reflection::Filter& filter, const AST* ast = nullptr);
         void ReflectSamplerValueTextureAddressMode(const std::string& value, Reflection::TextureAddressMode& addressMode, const AST* ast = nullptr);
-        void ReflectSamplerValueComparisonFunc(const std::string& value, Reflection::ComparisonFunc& comparisonFunc, const AST* ast = nullptr);
+
+        void ReflectBlendStateValue(StateValue* ast, Reflection::BlendState& blendState, uint32_t& blendTargetIdx);
+        void ReflectBlendStateTargetValue(StateValue* ast, Reflection::BlendStateTarget& blendStateTarget);
+        void ReflectBlendOperationValue(StateValue* ast, Reflection::BlendOperation& blendOperation);
+        void ReflectRasterizerStateValue(StateValue* ast, Reflection::RasterizerState& rasterizerState);
+        void ReflectDepthStateValue(StateValue* ast, Reflection::DepthState& depthState);
+        void ReflectStencilStateValue(StateValue* ast, Reflection::StencilState& stencilState);
+        void ReflectStencilOperationValue(StateValue* ast, Reflection::StencilOperation& stencilOperation);
+
+        void ReflectComparisonFunc(const std::string& value, Reflection::ComparisonFunc& comparisonFunc, const AST* ast = nullptr);
+        void ReflectBlendFactor(const std::string& value, Reflection::BlendFactor& blendFactor, const AST* ast = nullptr);
+        void ReflectBlendOpType(const std::string& value, Reflection::BlendOpType& blendOp, const AST* ast = nullptr);
+        void ReflectStencilOpType(const std::string& value, Reflection::StencilOpType& stencilOp, const AST* ast = nullptr);
+        void ReflectCullMode(const std::string& value, Reflection::CullMode& cullMode, const AST* ast = nullptr);
+        void ReflectFillMode(const std::string& value, Reflection::FillMode& fillMode, const AST* ast = nullptr);
 
         void ReflectAttributes(const std::vector<AttributePtr>& attribs);
         void ReflectAttributesNumThreads(Attribute* ast);

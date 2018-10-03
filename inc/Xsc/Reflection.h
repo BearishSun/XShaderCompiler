@@ -91,6 +91,59 @@ enum class ComparisonFunc
     Always          = 8,
 };
 
+//! Rasterizer fill mode.
+enum class FillMode
+{
+    Wire            = 1,
+    Solid           = 2,
+};
+
+//! Rasterizer cull mode.
+enum class CullMode
+{
+    Clockwise           = 1,
+    CounterClockwise    = 2,
+    None                = 3,
+};
+
+//! Action to take on stencil operations.
+enum class StencilOpType
+{
+    Keep                = 1,
+    Zero                = 2,
+    Replace             = 3,
+    Increment           = 4,
+    Decrement           = 5,
+    IncrementWrap       = 6,
+    DecrementWrap       = 7,
+    Inverse             = 8,
+};
+
+//! Factor to apply to one of the operands during the blend operation.
+enum class BlendFactor
+{
+    One                 = 1,
+    Zero                = 2,
+    DestinationRGB      = 3,
+    SourceRGB           = 4,
+    DestinationInvRGB   = 5,
+    SourceInvRGB        = 6,
+    DestinationA        = 7,
+    SourceA             = 8,
+    DestinationInvA     = 9,
+    SourceInvA          = 10,
+};
+
+//! Operation to apply to the two operands during blending.
+enum class BlendOpType
+{
+    Add                 = 1,
+    Subtract            = 2,
+    ReverseSubtract     = 3,
+    Minimum             = 4,
+    Maximum             = 5,
+};
+
 
 /* ===== Public structures ===== */
 
@@ -117,6 +170,75 @@ struct SamplerState
     bool                isNonDefault    = false;
     std::string         alias;
     // END BANSHEE CHANGES
+};
+
+//! Options controlling the rasterizer.
+struct RasterizerState
+{
+    FillMode fillMode           = FillMode::Solid;
+    CullMode cullMode           = CullMode::CounterClockwise;
+    bool scissorEnable          = false;
+    bool multisampleEnable      = true;
+    bool antialisedLineEnable   = false;
+};
+
+//! Options controlling depth buffer operations.
+struct DepthState
+{
+    bool readEnable             = true;
+    bool writeEnable            = true;
+    ComparisonFunc compareFunc  = ComparisonFunc::Less;
+    float depthBias             = 0.0f;
+    float scaledDepthBias       = 0.0f;
+    bool depthClip              = true;
+};
+
+//! Per-face information about a stencil state.
+struct StencilOperation
+{
+    StencilOpType fail          = StencilOpType::Keep;
+    StencilOpType zfail         = StencilOpType::Keep;
+    StencilOpType pass          = StencilOpType::Keep;
+    ComparisonFunc compareFunc  = ComparisonFunc::Always;
+};
+
+//! Options controlling stencil buffer operations.
+struct StencilState
+{
+    bool enabled                = false;
+    int32_t reference           = 0;
+    uint8_t readMask            = 0xFF;
+    uint8_t writeMask           = 0xFF;
+    StencilOperation front;
+    StencilOperation back;
+};
+
+//! Options describing a blend operation on a subset of the render target.
+struct BlendOperation
+{
+    BlendFactor source = BlendFactor::One;
+    BlendFactor destination = BlendFactor::Zero;
+    BlendOpType operation = BlendOpType::Add;
+};
+
+//! Options controlling blend state for a single render target.
+struct BlendStateTarget
+{
+    bool enabled = false;
+    int8_t writeMask = 0b1111;
+    BlendOperation colorOp;
+    BlendOperation alphaOp;
+};
+
+//! Options controlling the blend state.
+struct BlendState
+{
+    static constexpr uint32_t MAX_NUM_RENDER_TARGETS = 8;
+
+    bool alphaToCoverage = false;
+    bool independantBlend = false;
+
+    BlendStateTarget targets[MAX_NUM_RENDER_TARGETS];
 };
 
 //! Binding slot of textures, constant buffers, and fragment targets.
@@ -476,6 +598,18 @@ struct ReflectionData
     //! Static sampler states (identifier, states).
     std::map<std::string, SamplerState> samplerStates;
 
+    //! Non-programmable state that controls blending.
+    BlendState                          blendState;
+
+    //! Non-programmable state that controls rasterization.
+    RasterizerState                     rasterizerState;
+
+    //! Non-programmable state that controls depth buffer operations.
+    DepthState                          depthState;
+
+    //! Non-programmable state that controls stencil buffer operations.
+    StencilState                        stencilState;
+
     //! 'numthreads' attribute of a compute shader.
     NumThreads                          numThreads;
 
@@ -500,8 +634,23 @@ XSC_EXPORT std::string ToString(const Reflection::Filter t);
 //! Returns the string representation of the specified 'SamplerState::TextureAddressMode' type.
 XSC_EXPORT std::string ToString(const Reflection::TextureAddressMode t);
 
-//! Returns the string representation of the specified 'SamplerState::ComparisonFunc' type.
+//! Returns the string representation of the specified 'ComparisonFunc' type.
 XSC_EXPORT std::string ToString(const Reflection::ComparisonFunc t);
+
+//! Returns the string representation of the specified 'BlendOpType' type.
+XSC_EXPORT std::string ToString(const Reflection::BlendOpType t);
+
+//! Returns the string representation of the specified 'StencilOpType' type.
+XSC_EXPORT std::string ToString(const Reflection::StencilOpType t);
+
+//! Returns the string representation of the specified 'FillMode' type.
+XSC_EXPORT std::string ToString(const Reflection::FillMode t);
+
+//! Returns the string representation of the specified 'CullMode' type.
+XSC_EXPORT std::string ToString(const Reflection::CullMode t);
+
+//! Returns the string representation of the specified 'BlendFactor' type.
+XSC_EXPORT std::string ToString(const Reflection::BlendFactor t);
 
 //! Prints the reflection data into the output stream in a human readable format.
 XSC_EXPORT void PrintReflection(std::ostream& stream, const Reflection::ReflectionData& reflectionData);

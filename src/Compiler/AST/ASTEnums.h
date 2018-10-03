@@ -1166,6 +1166,31 @@ Reflection::TextureAddressMode StringToTexAddressMode(const std::string& s);
 std::string CompareFuncToString(const Reflection::ComparisonFunc t);
 Reflection::ComparisonFunc StringToCompareFunc(const std::string& s);
 
+/* ----- Reflection::BlendFactor Enum ----- */
+
+std::string BlendFactorToString(const Reflection::BlendFactor t);
+Reflection::BlendFactor StringToBlendFactor(const std::string& s);
+
+/* ----- Reflection::BlendOpType Enum ----- */
+
+std::string BlendOpTypeToString(const Reflection::BlendOpType t);
+Reflection::BlendOpType StringToBlendOpType(const std::string& s);
+
+/* ----- Reflection::StencilOpType Enum ----- */
+
+std::string StencilOpTypeToString(const Reflection::StencilOpType t);
+Reflection::StencilOpType StringToStencilOpType(const std::string& s);
+
+/* ----- Reflection::FillMode Enum ----- */
+
+std::string FillModeToString(const Reflection::FillMode t);
+Reflection::FillMode StringToFillMode(const std::string& s);
+
+/* ----- Reflection::CullMode Enum ----- */
+
+std::string CullModeToString(const Reflection::CullMode t);
+Reflection::CullMode StringToCullMode(const std::string& s);
+
 // BEGIN BANSHEE CHANGES
 struct DefaultTexture
 {

@@ -1654,10 +1654,12 @@ ExprPtr HLSLParser::ParseStateExpr()
 {
     if (IsLiteral())
         return ParseLiteralExpr();
+    if (Is(Tokens::Ident))
+        return ParseObjectExpr();
     if (Is(Tokens::LCurly))
         return ParseStateInitializerExpr();
 
-    ErrorUnexpected(R_ExpectedPrimaryExpr, nullptr, true);
+    ErrorUnexpected(R_ExpectedStateExpr, nullptr, true);
 
     return nullptr;
 }
