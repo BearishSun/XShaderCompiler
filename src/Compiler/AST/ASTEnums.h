@@ -529,7 +529,8 @@ enum class StateType
     Rasterizer,
     Depth,
     Stencil,
-    Blend
+    Blend,
+    Options
 };
 
 /* ----- ImageLayoutFormat Enum ----- */
@@ -1190,6 +1191,11 @@ Reflection::FillMode StringToFillMode(const std::string& s);
 
 std::string CullModeToString(const Reflection::CullMode t);
 Reflection::CullMode StringToCullMode(const std::string& s);
+
+/* ----- Reflection::SortMode Enum ----- */
+
+std::string SortModeToString(const Reflection::SortMode t);
+Reflection::SortMode StringToSortMode(const std::string& s);
 
 // BEGIN BANSHEE CHANGES
 struct DefaultTexture

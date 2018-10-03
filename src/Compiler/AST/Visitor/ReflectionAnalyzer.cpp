@@ -165,6 +165,10 @@ IMPLEMENT_VISIT_PROC(StateDecl)
             ReflectBlendStateValue(value.get(), data_->blendState, blendTargetIdx);
         break;
     }
+    case StateType::Options:
+        for(auto& value : ast->initializer->exprs)
+            ReflectOptionsStateValue(value.get(), data_->globalOptions);
+        break;
     default:
     case StateType::Undefined: 
         break;
@@ -1078,6 +1082,62 @@ void ReflectionAnalyzer::ReflectBlendStateValue(StateValue* ast, Reflection::Ble
         Error(R_UnknownStateKeyword("blend"), ast);
 }
 
+void ReflectionAnalyzer::ReflectOptionsStateValue(StateValue* ast, Reflection::GlobalOptions& options)
+{
+    const auto& name = ast->name;
+
+    if (name == "separable")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            options.separable = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "priority")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            options.priority = (int32_t)variant.Int();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "transparent")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            options.transparent = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "forward")
+    {
+        if (auto literalExpr = ast->value->As<LiteralExpr>())
+        {
+            auto variant = Variant::ParseFrom(literalExpr->value);
+            options.transparent = variant.Bool();
+        }
+        else
+            Error(R_ExpectedLiteralExpr, ast);
+    }
+    else if (name == "sort")
+    {
+        if (auto objectExpr = ast->value->As<ObjectExpr>())
+            ReflectSortMode(objectExpr->ident, options.sortMode, ast);
+        else
+            Error(R_ExpectedStateKeyword, ast);
+    }
+    else
+        Error(R_UnknownStateKeyword("options"), ast);
+}
+
+
 void ReflectionAnalyzer::ReflectSamplerValueFilter(const std::string& value, Reflection::Filter& filter, const AST* ast)
 {
     try
@@ -1171,6 +1231,18 @@ void ReflectionAnalyzer::ReflectComparisonFunc(const std::string& value, Reflect
     catch (const std::invalid_argument& e)
     {
         Warning(e.what(), ast);
+    }
+}
+
+void ReflectionAnalyzer::ReflectSortMode(const std::string& value, Reflection::SortMode& sortMode, const AST* ast)
+{
+    try
+    {
+        sortMode = StringToSortMode(value);
+    }
+    catch (const std::invalid_argument& e)
+    {
+        Error(e.what(), ast);
     }
 }
 

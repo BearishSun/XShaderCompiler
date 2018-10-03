@@ -1722,6 +1722,35 @@ Reflection::FillMode StringToFillMode(const std::string& s)
 {
     return StringToTypeSecondary(DetailsMap7::g_mapCompareFunc, s, "FillMode");
 }
+
+
+/* ----- SortMode Enum ----- */
+
+namespace DetailsMap8
+{
+
+using T = Reflection::SortMode;
+
+static const std::map<std::string, T> g_mapCompareFunc
+{
+    { "none",                   T::None                    },
+    { "backtofront",            T::BackToFront             },
+    { "fronttoback",            T::FrontToBack             },
+};
+
+} // /namespace DetailsMap8
+
+std::string SortModeToString(const Reflection::SortMode t)
+{
+    return TypeToStringSecondary(DetailsMap8::g_mapCompareFunc, t, "SortMode");
+}
+
+Reflection::SortMode StringToSortMode(const std::string& s)
+{
+    return StringToTypeSecondary(DetailsMap8::g_mapCompareFunc, s, "SortMode");
+}
+
+
 } // /namespace Xsc
 
 

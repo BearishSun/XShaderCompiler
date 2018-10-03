@@ -41,6 +41,7 @@ class ReflectionPrinter
         void PrintReflectionObject(const Reflection::BlendStateTarget& state);
         void PrintReflectionObject(const Reflection::StencilOperation& state);
         void PrintReflectionObject(const Reflection::BlendOperation& state);
+        void PrintReflectionObject(const Reflection::GlobalOptions& state, const std::string& title);
         void PrintReflectionAttribute(const Reflection::NumThreads& numThreads, const std::string& title);
 
         std::ostream&   output_;

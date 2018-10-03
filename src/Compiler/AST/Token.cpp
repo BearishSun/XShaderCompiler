@@ -135,6 +135,7 @@ std::string Token::TypeToString(const Types type)
         case Types::DepthState:         return R_State("depth");
         case Types::StencilState:       return R_State("stencil");
         case Types::BlendState:         return R_State("blend");
+        case Types::OptionsState:       return R_State("options");
         default:                        return "";
     }
 }

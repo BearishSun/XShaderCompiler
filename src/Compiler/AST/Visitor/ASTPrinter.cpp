@@ -224,6 +224,7 @@ IMPLEMENT_VISIT_PROC(StateDecl)
         case StateType::Depth: typeName = "depth"; break;
         case StateType::Stencil: typeName = "stencil"; break;
         case StateType::Blend: typeName = "blend"; break;
+        case StateType::Options: typeName = "options"; break;
         }
 
         Printable(ast, "stateType : " + typeName);

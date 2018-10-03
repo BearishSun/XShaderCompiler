@@ -144,6 +144,14 @@ enum class BlendOpType
     Maximum             = 5,
 };
 
+//! Option used for controlling in what order will elements with the shader be rendered in
+enum class SortMode
+{
+    None                = 1,
+    BackToFront         = 2,
+    FrontToBack         = 3    
+};
+
 
 /* ===== Public structures ===== */
 
@@ -216,16 +224,16 @@ struct StencilState
 //! Options describing a blend operation on a subset of the render target.
 struct BlendOperation
 {
-    BlendFactor source = BlendFactor::One;
-    BlendFactor destination = BlendFactor::Zero;
-    BlendOpType operation = BlendOpType::Add;
+    BlendFactor source          = BlendFactor::One;
+    BlendFactor destination     = BlendFactor::Zero;
+    BlendOpType operation       = BlendOpType::Add;
 };
 
 //! Options controlling blend state for a single render target.
 struct BlendStateTarget
 {
-    bool enabled = false;
-    int8_t writeMask = 0b1111;
+    bool enabled                = false;
+    int8_t writeMask            = 0b1111;
     BlendOperation colorOp;
     BlendOperation alphaOp;
 };
@@ -235,10 +243,20 @@ struct BlendState
 {
     static constexpr uint32_t MAX_NUM_RENDER_TARGETS = 8;
 
-    bool alphaToCoverage = false;
-    bool independantBlend = false;
+    bool alphaToCoverage    = false;
+    bool independantBlend   = false;
 
     BlendStateTarget targets[MAX_NUM_RENDER_TARGETS];
+};
+
+//! Global options for a shader
+struct GlobalOptions
+{
+    SortMode sortMode       = SortMode::FrontToBack;
+    bool separable          = false;
+    bool transparent        = false;
+    bool forward            = false;
+    int32_t priority        = 0;
 };
 
 //! Binding slot of textures, constant buffers, and fragment targets.
@@ -610,6 +628,9 @@ struct ReflectionData
     //! Non-programmable state that controls stencil buffer operations.
     StencilState                        stencilState;
 
+    //! Global options applied to all programs.
+    GlobalOptions                       globalOptions;
+
     //! 'numthreads' attribute of a compute shader.
     NumThreads                          numThreads;
 
@@ -651,6 +672,9 @@ XSC_EXPORT std::string ToString(const Reflection::CullMode t);
 
 //! Returns the string representation of the specified 'BlendFactor' type.
 XSC_EXPORT std::string ToString(const Reflection::BlendFactor t);
+
+//! Returns the string representation of the specified 'SortMode' type.
+XSC_EXPORT std::string ToString(const Reflection::SortMode t);
 
 //! Prints the reflection data into the output stream in a human readable format.
 XSC_EXPORT void PrintReflection(std::ostream& stream, const Reflection::ReflectionData& reflectionData);

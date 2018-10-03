@@ -150,6 +150,7 @@ class Token
             DepthState,         // depth
             StencilState,       // stencil
             BlendState,         // blend
+            OptionsState,       // options
         };
 
         Token(Token&& other);

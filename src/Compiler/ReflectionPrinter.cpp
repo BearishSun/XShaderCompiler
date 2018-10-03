@@ -35,6 +35,7 @@ void ReflectionPrinter::PrintReflection(const Reflection::ReflectionData& reflec
         PrintReflectionObject   ( reflectionData.depthState,       "Depth state"       );
         PrintReflectionObject   ( reflectionData.stencilState,     "Stencil state"     );
         PrintReflectionObject   ( reflectionData.blendState,       "Blend state"       );
+        PrintReflectionObject   ( reflectionData.globalOptions,    "Global options"    );
         PrintReflectionAttribute( reflectionData.numThreads,       "Number of Threads" );
     }
     indentHandler_.DecIndent();
@@ -226,6 +227,18 @@ void ReflectionPrinter::PrintReflectionObject(const Reflection::StencilState& st
         ScopedIndent indent(indentHandler_);
         PrintReflectionObject(state.front);
     }
+}
+
+void ReflectionPrinter::PrintReflectionObject(const Reflection::GlobalOptions& state, const std::string& title)
+{
+    IndentOut() << title << ':' << std::endl;
+    ScopedIndent indent(indentHandler_);
+    
+    IndentOut() << "SortMode            = " << ToString(state.sortMode) << std::endl;
+    IndentOut() << "Separable           = " << state.separable << std::endl;
+    IndentOut() << "Transparent         = " << state.transparent << std::endl;
+    IndentOut() << "Forward             = " << state.forward << std::endl;
+    IndentOut() << "Priority            = " << state.priority << std::endl;
 }
 
 void ReflectionPrinter::PrintReflectionAttribute(const Reflection::NumThreads& numThreads, const std::string& title)

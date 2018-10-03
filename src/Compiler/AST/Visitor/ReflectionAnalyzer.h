@@ -78,6 +78,7 @@ class ReflectionAnalyzer : private Visitor
         void ReflectDepthStateValue(StateValue* ast, Reflection::DepthState& depthState);
         void ReflectStencilStateValue(StateValue* ast, Reflection::StencilState& stencilState);
         void ReflectStencilOperationValue(StateValue* ast, Reflection::StencilOperation& stencilOperation);
+        void ReflectOptionsStateValue(StateValue* ast, Reflection::GlobalOptions& globalOptions);
 
         void ReflectComparisonFunc(const std::string& value, Reflection::ComparisonFunc& comparisonFunc, const AST* ast = nullptr);
         void ReflectBlendFactor(const std::string& value, Reflection::BlendFactor& blendFactor, const AST* ast = nullptr);
@@ -85,6 +86,7 @@ class ReflectionAnalyzer : private Visitor
         void ReflectStencilOpType(const std::string& value, Reflection::StencilOpType& stencilOp, const AST* ast = nullptr);
         void ReflectCullMode(const std::string& value, Reflection::CullMode& cullMode, const AST* ast = nullptr);
         void ReflectFillMode(const std::string& value, Reflection::FillMode& fillMode, const AST* ast = nullptr);
+        void ReflectSortMode(const std::string& value, Reflection::SortMode& sortMode, const AST* ast = nullptr);
 
         void ReflectAttributes(const std::vector<AttributePtr>& attribs);
         void ReflectAttributesNumThreads(Attribute* ast);

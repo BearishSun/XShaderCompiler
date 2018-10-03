@@ -895,6 +895,8 @@ StmntPtr HLSLParser::ParseGlobalStmntPrimary()
             return ParseStencilStateDeclStmnt();
         case Tokens::BlendState:
             return ParseBlendStateDeclStmnt();
+        case Tokens::OptionsState:
+            return ParseOptionsStateDeclStmnt();
         case Tokens::Void:
         case Tokens::Inline:
             return ParseFunctionDeclStmnt();
@@ -1128,6 +1130,18 @@ StateDeclStmntPtr HLSLParser::ParseBlendStateDeclStmnt()
     Accept(Tokens::BlendState);
 
     ast->type = StateType::Blend;
+    ast->declObject = ParseStateDecl(ast.get());
+
+    return UpdateSourceArea(ast);
+}
+
+StateDeclStmntPtr HLSLParser::ParseOptionsStateDeclStmnt()
+{
+    auto ast = Make<StateDeclStmnt>();
+
+    Accept(Tokens::OptionsState);
+
+    ast->type = StateType::Options;
     ast->declObject = ParseStateDecl(ast.get());
 
     return UpdateSourceArea(ast);

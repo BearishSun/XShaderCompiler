@@ -131,6 +131,7 @@ class HLSLParser : public SLParser
         StateDeclStmntPtr               ParseDepthStateDeclStmnt();
         StateDeclStmntPtr               ParseStencilStateDeclStmnt();
         StateDeclStmntPtr               ParseBlendStateDeclStmnt();
+        StateDeclStmntPtr               ParseOptionsStateDeclStmnt();
 
         StmntPtr                        ParseStmnt(bool allowAttributes = true);
         StmntPtr                        ParseStmntPrimary();

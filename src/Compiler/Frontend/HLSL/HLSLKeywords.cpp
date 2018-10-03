@@ -443,6 +443,7 @@ static KeywordMapType GenerateBSLKeywordMap()
         { "depth",                   T::DepthState      },
         { "stencil",                 T::StencilState    },
         { "blend",                   T::BlendState      },
+        { "options",                 T::OptionsState    },
     };
 }
 

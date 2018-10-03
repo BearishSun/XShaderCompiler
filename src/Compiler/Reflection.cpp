@@ -54,6 +54,11 @@ XSC_EXPORT std::string ToString(const Reflection::BlendFactor t)
     return BlendFactorToString(t);
 }
 
+XSC_EXPORT std::string ToString(const Reflection::SortMode t)
+{
+    return SortModeToString(t);
+}
+
 XSC_EXPORT void PrintReflection(std::ostream& stream, const Reflection::ReflectionData& reflectionData)
 {
     ReflectionPrinter printer(stream);
