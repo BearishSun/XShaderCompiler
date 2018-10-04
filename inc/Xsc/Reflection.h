@@ -27,48 +27,16 @@ namespace Reflection
 
 /* ===== Public enumerations ===== */
 
-//! Sampler filter enumeration (D3D11_FILTER).
+//! Sampler filter enumeration.
 enum class Filter
 {
-    MinMagMipPoint                          = 0,
-    MinMagPointMipLinear                    = 0x1,
-    MinPointMagLinearMipPoint               = 0x4,
-    MinPointMagMipLinear                    = 0x5,
-    MinLinearMagMipPoint                    = 0x10,
-    MinLinearMagPointMipLinear              = 0x11,
-    MinMagLinearMipPoint                    = 0x14,
-    MinMagMipLinear                         = 0x15,
-    Anisotropic                             = 0x55,
-    ComparisonMinMagMipPoint                = 0x80,
-    ComparisonMinMagPointMipLinear          = 0x81,
-    ComparisonMinPointMagLinearMipPoint     = 0x84,
-    ComparisonMinPointMagMipLinear          = 0x85,
-    ComparisonMinLinearMagMipPoint          = 0x90,
-    ComparisonMinLinearMagPointMipLinear    = 0x91,
-    ComparisonMinMagLinearMipPoint          = 0x94,
-    ComparisonMinMagMipLinear               = 0x95,
-    ComparisonAnisotropic                   = 0xd5,
-    MinimumMinMagMipPoint                   = 0x100,
-    MinimumMinMagPointMipLinear             = 0x101,
-    MinimumMinPointMagLinearMipPoint        = 0x104,
-    MinimumMinPointMagMipLinear             = 0x105,
-    MinimumMinLinearMagMipPoint             = 0x110,
-    MinimumMinLinearMagPointMipLinear       = 0x111,
-    MinimumMinMagLinearMipPoint             = 0x114,
-    MinimumMinMagMipLinear                  = 0x115,
-    MinimumAnisotropic                      = 0x155,
-    MaximumMinMagMipPoint                   = 0x180,
-    MaximumMinMagPointMipLinear             = 0x181,
-    MaximumMinPointMagLinearMipPoint        = 0x184,
-    MaximumMinPointMagMipLinear             = 0x185,
-    MaximumMinLinearMagMipPoint             = 0x190,
-    MaximumMinLinearMagPointMipLinear       = 0x191,
-    MaximumMinMagLinearMipPoint             = 0x194,
-    MaximumMinMagMipLinear                  = 0x195,
-    MaximumAnisotropic                      = 0x1d5,
+    None                            = 1,
+    Point                           = 2,
+    Linear                          = 3,
+    Anisotropic                     = 4,
 };
 
-//! Texture address mode enumeration (D3D11_TEXTURE_ADDRESS_MODE).
+//! Texture address mode enumeration.
 enum class TextureAddressMode
 {
     Wrap        = 1,
@@ -78,7 +46,7 @@ enum class TextureAddressMode
     MirrorOnce  = 5,
 };
 
-//! Sample comparison function enumeration (D3D11_COMPARISON_FUNC).
+//! Sample comparison function enumeration.
 enum class ComparisonFunc
 {
     Never           = 1,
@@ -156,14 +124,13 @@ enum class SortMode
 /* ===== Public structures ===== */
 
 /**
-\brief Static sampler state descriptor structure (D3D11_SAMPLER_DESC).
-\remarks All members and enumerations have the same values like the one in the "D3D11_SAMPLER_DESC" structure respectively.
-Thus, they can all be statically casted from and to the original D3D11 values.
-\see https://msdn.microsoft.com/en-us/library/windows/desktop/ff476207(v=vs.85).aspx
+\brief Sampler state descriptor structure
 */
 struct SamplerState
 {
-    Filter              filter          = Filter::MinMagMipLinear;
+    Filter              filterMin       = Filter::Linear;
+    Filter              filterMax       = Filter::Linear;
+    Filter              filterMip       = Filter::Linear;
     TextureAddressMode  addressU        = TextureAddressMode::Wrap;
     TextureAddressMode  addressV        = TextureAddressMode::Wrap;
     TextureAddressMode  addressW        = TextureAddressMode::Wrap;

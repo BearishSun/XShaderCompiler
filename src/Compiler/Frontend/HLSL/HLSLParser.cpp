@@ -400,7 +400,29 @@ SamplerValuePtr HLSLParser::ParseSamplerValue()
 
     /* Parse value expression */
     Accept(Tokens::AssignOp, "=");
-    ast->value = ParseExpr();
+
+    /* Special handling for 'point' and 'linear' keywords. */
+    if(Is(Tokens::InterpModifier) || Is(Tokens::PrimitiveType))
+    {
+        auto token = AcceptIt();
+
+        auto tokenName = token->Spell();
+        if (tokenName == "linear" || tokenName == "point")
+        {
+            auto objExpr = Make<ObjectExpr>();
+
+            objExpr->prefixExpr = nullptr;
+            objExpr->isStatic = false;
+            objExpr->ident = tokenName;
+
+            ast->value = UpdateSourceArea(objExpr);
+        }
+        else
+            ast->value = ParseExpr();
+    }
+    else
+        ast->value = ParseExpr();
+
     Semi();
 
     return ast;

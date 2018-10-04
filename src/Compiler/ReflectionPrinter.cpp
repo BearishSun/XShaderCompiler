@@ -117,7 +117,9 @@ void ReflectionPrinter::PrintReflectionObjects(const std::map<std::string, Refle
                 IndentOut() << "AddressW       = " << ToString(smpl.addressW) << std::endl;
                 IndentOut() << "BorderColor    = { " << brdCol[0] << ", " << brdCol[1] << ", " << brdCol[2] << ", " << brdCol[3] << " }" << std::endl;
                 IndentOut() << "ComparisonFunc = " << ToString(smpl.comparisonFunc) << std::endl;
-                IndentOut() << "Filter         = " << ToString(smpl.filter) << std::endl;
+                IndentOut() << "FilterMin      = " << ToString(smpl.filterMin) << std::endl;
+                IndentOut() << "FilterMax      = " << ToString(smpl.filterMax) << std::endl;
+                IndentOut() << "FilterMip      = " << ToString(smpl.filterMip) << std::endl;
                 IndentOut() << "MaxAnisotropy  = " << smpl.maxAnisotropy << std::endl;
                 IndentOut() << "MaxLOD         = " << smpl.maxLOD << std::endl;
                 IndentOut() << "MinLOD         = " << smpl.minLOD << std::endl;

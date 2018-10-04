@@ -677,31 +677,39 @@ void ReflectionAnalyzer::ReflectSamplerValue(SamplerValue* ast, Reflection::Samp
     {
         const auto& value = literalExpr->value;
 
-        if (name == "MipLODBias")
+        if (name == "lodbias")
             samplerState.mipLODBias = FromStringOrDefault<float>(value);
-        else if (name == "MaxAnisotropy")
+        else if (name == "anisotropy")
             samplerState.maxAnisotropy = static_cast<unsigned int>(FromStringOrDefault<unsigned long>(value));
-        else if (name == "MinLOD")
+        else if (name == "minlod")
             samplerState.minLOD = FromStringOrDefault<float>(value);
-        else if (name == "MaxLOD")
+        else if (name == "maxlod")
             samplerState.maxLOD = FromStringOrDefault<float>(value);
+        else
+            Error(R_UnknownStateKeyword("sampler state"), ast);
     }
     else if (auto objectExpr = ast->value->As<ObjectExpr>())
     {
         const auto& value = objectExpr->ident;
 
-        if (name == "Filter")
-            ReflectSamplerValueFilter(value, samplerState.filter, ast);
-        else if (name == "AddressU")
+        if (name == "filtermin")
+            ReflectSamplerValueFilter(value, samplerState.filterMin, ast);
+        else if (name == "filtermax")
+            ReflectSamplerValueFilter(value, samplerState.filterMax, ast);
+        else if (name == "filtermip")
+            ReflectSamplerValueFilter(value, samplerState.filterMip, ast);
+        else if (name == "addressu")
             ReflectSamplerValueTextureAddressMode(value, samplerState.addressU, ast);
-        else if (name == "AddressV")
+        else if (name == "addressv")
             ReflectSamplerValueTextureAddressMode(value, samplerState.addressV, ast);
-        else if (name == "AddressW")
+        else if (name == "addressw")
             ReflectSamplerValueTextureAddressMode(value, samplerState.addressW, ast);
-        else if (name == "ComparisonFunc")
+        else if (name == "compare")
             ReflectComparisonFunc(value, samplerState.comparisonFunc, ast);
+        else
+            Error(R_UnknownStateKeyword("sampler state"), ast);
     }
-    else if (name == "BorderColor")
+    else if (name == "border")
     {
         try
         {
@@ -737,9 +745,11 @@ void ReflectionAnalyzer::ReflectSamplerValue(SamplerValue* ast, Reflection::Samp
         }
         catch (const std::string& s)
         {
-            Warning(R_FailedToInitializeSamplerValue(s, "BorderColor"), ast->value.get());
+            Error(R_FailedToInitializeSamplerValue(s, "border"), ast->value.get());
         }
     }
+    else
+        Error(R_ExpectedStateKeyword, ast);
 }
 
 void ReflectionAnalyzer::ReflectStencilOperationValue(StateValue* ast, Reflection::StencilOperation& stencilOperation)
