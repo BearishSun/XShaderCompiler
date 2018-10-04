@@ -16,6 +16,10 @@
 
 namespace Xsc
 {
+enum class StateForm
+{
+    Undefined, Short, Long
+};
 
 
 /*
@@ -410,9 +414,6 @@ SamplerValuePtr HLSLParser::ParseSamplerValue()
         if (tokenName == "linear" || tokenName == "point")
         {
             auto objExpr = Make<ObjectExpr>();
-
-            objExpr->prefixExpr = nullptr;
-            objExpr->isStatic = false;
             objExpr->ident = tokenName;
 
             ast->value = UpdateSourceArea(objExpr);
@@ -428,20 +429,56 @@ SamplerValuePtr HLSLParser::ParseSamplerValue()
     return ast;
 }
 
-StateValuePtr HLSLParser::ParseStateValue(bool literalOnly)
+StateValuePtr HLSLParser::ParseStateValue(StateForm& form)
 {
     auto ast = Make<StateValue>();
 
-    if(literalOnly)
+    if(form == StateForm::Undefined)
     {
-        ast->value = ParseLiteralExpr();
-    }
-    else
-    {
-        /* Parse state name */
-        ast->name = ParseIdent();
+        // Short form
+        if (IsLiteral())
+        {
+            ast->value = ParseLiteralExpr();
+            form = StateForm::Short;
+        }
+        else
+        {
+            std::string ident = ParseIdent();
 
-        /* Parse value expression */
+            // Long form
+            if (Is(Tokens::AssignOp, "="))
+            {
+                AcceptIt();
+
+                ast->name = ident;
+                ast->value = ParseStateExpr();
+                form = StateForm::Long;
+            }
+            else // Short form
+            {
+                auto objExpr = Make<ObjectExpr>();
+                objExpr->ident = ident;
+
+                ast->value = UpdateSourceArea(objExpr);
+                form = StateForm::Short;
+            }
+        }
+    }
+    else if(form == StateForm::Short)
+    {
+        if (IsLiteral())
+            ast->value = ParseLiteralExpr();
+        else
+        {
+            auto objExpr = Make<ObjectExpr>();
+            objExpr->ident = ParseIdent();
+
+            ast->value = UpdateSourceArea(objExpr);
+        }
+    }
+    else if(form == StateForm::Long)
+    {
+        ast->name = ParseIdent();
         Accept(Tokens::AssignOp, "=");
         ast->value = ParseStateExpr();
     }
@@ -1810,15 +1847,16 @@ std::vector<SamplerValuePtr> HLSLParser::ParseSamplerValueList()
     return samplerValues;
 }
 
-std::vector<StateValuePtr> HLSLParser::ParseStateValueList(bool literalList)
+std::vector<StateValuePtr> HLSLParser::ParseStateValueList()
 {
     std::vector<StateValuePtr> stateValues;
 
+    StateForm form = StateForm::Undefined;
     while (!Is(Tokens::RCurly))
     {
-        stateValues.push_back(ParseStateValue(literalList));
+        stateValues.push_back(ParseStateValue(form));
 
-        if(literalList)
+        if(form == StateForm::Short)
         {
             if(Is(Tokens::Comma))
                 AcceptIt();
@@ -1851,9 +1889,7 @@ std::vector<StateValuePtr> HLSLParser::ParseStateInitializerList()
 {
     Accept(Tokens::LCurly);
 
-    // State values can be in "identifier = value;" form, or a list of un-named literals
-    bool literalList = IsLiteral();
-    auto exprs = ParseStateValueList(literalList);
+    auto exprs = ParseStateValueList();
     Accept(Tokens::RCurly);
     return exprs;
 }

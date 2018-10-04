@@ -775,6 +775,58 @@ void ReflectionAnalyzer::ReflectStencilOperationValue(StateValue* ast, Reflectio
         Error(R_ExpectedStateKeyword, ast);
 }
 
+void ReflectionAnalyzer::ReflectStencilOperation(StateInitializerExpr* ast, Reflection::StencilOperation& stencilOperation)
+{
+    if(ast->exprs.empty())
+        return;
+
+    // Nameless = short-form
+    if(ast->exprs[0]->name.empty())
+    {
+        if(ast->exprs.size() == 4)
+        {
+            if (auto objectExpr = ast->exprs[0]->value->As<ObjectExpr>())
+            {
+                const auto& value = objectExpr->ident;
+                ReflectStencilOpType(value, stencilOperation.fail, ast->exprs[0].get());
+            }
+            else
+                Error(R_ExpectedStateKeyword, ast);
+
+            if (auto objectExpr = ast->exprs[1]->value->As<ObjectExpr>())
+            {
+                const auto& value = objectExpr->ident;
+                ReflectStencilOpType(value, stencilOperation.zfail, ast->exprs[1].get());
+            }
+            else
+                Error(R_ExpectedStateKeyword, ast);
+
+            if (auto objectExpr = ast->exprs[2]->value->As<ObjectExpr>())
+            {
+                const auto& value = objectExpr->ident;
+                ReflectStencilOpType(value, stencilOperation.pass, ast->exprs[2].get());
+            }
+            else
+                Error(R_ExpectedStateKeyword, ast);
+
+            if (auto objectExpr = ast->exprs[3]->value->As<ObjectExpr>())
+            {
+                const auto& value = objectExpr->ident;
+                ReflectComparisonFunc(value, stencilOperation.compareFunc, ast->exprs[3].get());
+            }
+            else
+                Error(R_ExpectedStateKeyword, ast);
+        }
+        else
+            Error(R_InvalidTypeOrArgCount, ast);
+    }
+    else
+    {
+        for (auto& expr : ast->exprs)
+            ReflectStencilOperationValue(expr.get(), stencilOperation);
+    }
+}
+
 void ReflectionAnalyzer::ReflectBlendOperationValue(StateValue* ast, Reflection::BlendOperation& blendOperation)
 {
     const auto& name = ast->name;
@@ -794,6 +846,50 @@ void ReflectionAnalyzer::ReflectBlendOperationValue(StateValue* ast, Reflection:
     }
     else
         Error(R_ExpectedStateKeyword, ast);
+}
+
+void ReflectionAnalyzer::ReflectBlendOperation(StateInitializerExpr* ast, Reflection::BlendOperation& blendOperation)
+{
+    if(ast->exprs.empty())
+        return;
+
+    // Nameless = short-form
+    if(ast->exprs[0]->name.empty())
+    {
+        if(ast->exprs.size() == 3)
+        {
+            if (auto objectExpr = ast->exprs[0]->value->As<ObjectExpr>())
+            {
+                const auto& value = objectExpr->ident;
+                ReflectBlendFactor(value, blendOperation.source, ast->exprs[0].get());
+            }
+            else
+                Error(R_ExpectedStateKeyword, ast);
+
+            if (auto objectExpr = ast->exprs[1]->value->As<ObjectExpr>())
+            {
+                const auto& value = objectExpr->ident;
+                ReflectBlendFactor(value, blendOperation.destination, ast->exprs[1].get());
+            }
+            else
+                Error(R_ExpectedStateKeyword, ast);
+
+            if (auto objectExpr = ast->exprs[2]->value->As<ObjectExpr>())
+            {
+                const auto& value = objectExpr->ident;
+                ReflectBlendOpType(value, blendOperation.operation, ast->exprs[2].get());
+            }
+            else
+                Error(R_ExpectedStateKeyword, ast);
+        }
+        else
+            Error(R_InvalidTypeOrArgCount, ast);
+    }
+    else
+    {
+        for (auto& expr : ast->exprs)
+            ReflectBlendOperationValue(expr.get(), blendOperation);
+    }
 }
 
 void ReflectionAnalyzer::ReflectBlendStateTargetValue(StateValue* ast, Reflection::BlendStateTarget& blendStateTarget)
@@ -823,20 +919,14 @@ void ReflectionAnalyzer::ReflectBlendStateTargetValue(StateValue* ast, Reflectio
     else if (name == "color")
     {
         if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
-        {
-            for (auto& expr : stateInitializerExpr->exprs)
-                ReflectBlendOperationValue(expr.get(), blendStateTarget.colorOp);
-        }
+            ReflectBlendOperation(stateInitializerExpr, blendStateTarget.colorOp);
         else
             Error(R_ExpectedStateInitializerExpr, ast);
     }
     else if (name == "alpha")
     {
         if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
-        {
-            for (auto& expr : stateInitializerExpr->exprs)
-                ReflectBlendOperationValue(expr.get(), blendStateTarget.alphaOp);
-        }
+            ReflectBlendOperation(stateInitializerExpr, blendStateTarget.alphaOp);
         else
             Error(R_ExpectedStateInitializerExpr, ast);
     }
@@ -1012,20 +1102,14 @@ void ReflectionAnalyzer::ReflectStencilStateValue(StateValue* ast, Reflection::S
     else if (name == "back")
     {
         if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
-        {
-            for (auto& expr : stateInitializerExpr->exprs)
-                ReflectStencilOperationValue(expr.get(), stencilState.back);
-        }
+            ReflectStencilOperation(stateInitializerExpr, stencilState.back);
         else
             Error(R_ExpectedStateInitializerExpr, ast);
     }
     else if (name == "front")
     {
         if (auto stateInitializerExpr = ast->value->As<StateInitializerExpr>())
-        {
-            for (auto& expr : stateInitializerExpr->exprs)
-                ReflectStencilOperationValue(expr.get(), stencilState.front);
-        }
+            ReflectStencilOperation(stateInitializerExpr, stencilState.front);
         else
             Error(R_ExpectedStateInitializerExpr, ast);
     }

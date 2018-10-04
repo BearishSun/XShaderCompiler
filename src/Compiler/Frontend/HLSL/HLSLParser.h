@@ -17,6 +17,7 @@
 
 namespace Xsc
 {
+enum class StateForm;
 
 
 // Syntax parser class for the shading language HLSL.
@@ -102,7 +103,7 @@ class HLSLParser : public SLParser
         VarDeclPtr                      ParseVarDecl(VarDeclStmnt* declStmntRef, const TokenPtr& identTkn = nullptr) override;
 
         SamplerValuePtr                 ParseSamplerValue();
-        StateValuePtr                   ParseStateValue(bool literalOnly = false);
+        StateValuePtr                   ParseStateValue(StateForm& form);
         AttributePtr                    ParseAttribute();
         RegisterPtr                     ParseRegister(bool parseColon = true);
         PackOffsetPtr                   ParsePackOffset(bool parseColon = true);
@@ -163,7 +164,7 @@ class HLSLParser : public SLParser
         std::vector<BufferDeclPtr>      ParseBufferDeclList(BufferDeclStmnt* declStmntRef, const TokenPtr& identTkn = nullptr);
         std::vector<SamplerDeclPtr>     ParseSamplerDeclList(SamplerDeclStmnt* declStmntRef, const TokenPtr& identTkn = nullptr);
         std::vector<SamplerValuePtr>    ParseSamplerValueList();
-        std::vector<StateValuePtr>      ParseStateValueList(bool literalList = false);
+        std::vector<StateValuePtr>      ParseStateValueList();
         std::vector<AliasDeclPtr>       ParseAliasDeclList(TypeDenoterPtr typeDenoter);
         std::vector<StateValuePtr>      ParseStateInitializerList();
 

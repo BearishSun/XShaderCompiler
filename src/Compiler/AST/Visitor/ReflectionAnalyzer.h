@@ -74,11 +74,13 @@ class ReflectionAnalyzer : private Visitor
         void ReflectBlendStateValue(StateValue* ast, Reflection::BlendState& blendState, uint32_t& blendTargetIdx);
         void ReflectBlendStateTargetValue(StateValue* ast, Reflection::BlendStateTarget& blendStateTarget);
         void ReflectBlendOperationValue(StateValue* ast, Reflection::BlendOperation& blendOperation);
+        void ReflectBlendOperation(StateInitializerExpr* ast, Reflection::BlendOperation& blendOperation);
         void ReflectRasterizerStateValue(StateValue* ast, Reflection::RasterizerState& rasterizerState);
         void ReflectDepthStateValue(StateValue* ast, Reflection::DepthState& depthState);
         void ReflectStencilStateValue(StateValue* ast, Reflection::StencilState& stencilState);
         void ReflectStencilOperationValue(StateValue* ast, Reflection::StencilOperation& stencilOperation);
-        void ReflectOptionsStateValue(StateValue* ast, Reflection::GlobalOptions& globalOptions);
+        void ReflectStencilOperation(StateInitializerExpr* ast, Reflection::StencilOperation& stencilOperation);
+        void ReflectOptionsStateValue(StateValue* ast, Reflection::GlobalOptions& options);
 
         void ReflectComparisonFunc(const std::string& value, Reflection::ComparisonFunc& comparisonFunc, const AST* ast = nullptr);
         void ReflectBlendFactor(const std::string& value, Reflection::BlendFactor& blendFactor, const AST* ast = nullptr);
