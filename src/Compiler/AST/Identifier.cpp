@@ -36,6 +36,11 @@ Identifier& Identifier::operator = (const std::string& s)
     return *this;
 }
 
+Identifier Identifier::Copy() const
+{
+    return Identifier(*this);    
+}
+
 Identifier& Identifier::AppendPrefix(const std::string& prefix)
 {
     if (!prefix.empty() && Final().compare(0, prefix.size(), prefix) == 0)

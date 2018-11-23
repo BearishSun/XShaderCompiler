@@ -116,6 +116,11 @@ void SourceCode::NextSourceOrigin(const std::string& filename, int lineOffset)
     pos_.SetOrigin(origin);
 }
 
+std::shared_ptr<SourceCode> SourceCode::Copy() const
+{
+    return std::make_shared<SourceCode>(*this);
+}
+
 std::string SourceCode::Filename() const
 {
     if (auto origin = pos_.GetOrigin())

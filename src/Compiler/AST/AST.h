@@ -24,7 +24,7 @@
 #include <set>
 #include <map>
 #include <functional>
-
+#include <unordered_map>
 
 namespace Xsc
 {
@@ -36,6 +36,12 @@ For simplicity only structs with public members are used here.
 */
 
 class Visitor;
+
+struct CloneContext
+{
+    // Old -> New instance lookup
+    std::unordered_map<const AST*, ASTPtr> lookup;
+};
 
 // Enumeration for expression finding predicates.
 enum SearchFlags : unsigned int
@@ -65,6 +71,7 @@ using MergeExprFunctor = std::function<ExprPtr(const ExprPtr& expr0, const ExprP
 
 #define AST_INTERFACE(CLASS_NAME)                               \
     static const Types classType = Types::CLASS_NAME;           \
+    CLASS_NAME() = default;                                     \
     CLASS_NAME(const SourcePosition& astPos)                    \
     {                                                           \
         area = SourceArea(astPos, 1);                           \
@@ -80,7 +87,12 @@ using MergeExprFunctor = std::function<ExprPtr(const ExprPtr& expr0, const ExprP
     void Visit(Visitor* visitor, void* args = nullptr) override \
     {                                                           \
         visitor->Visit##CLASS_NAME(this, args);                 \
-    }
+    }                                                           \
+    ASTPtr CreateInstance() const override                      \
+    {                                                           \
+        return std::make_shared<CLASS_NAME>();                  \
+    }                                                           \
+    ASTPtr Clone(CloneContext& context) const override;         \
 
 #define DECL_AST_ALIAS(ALIAS, BASE) \
     using ALIAS         = BASE;     \
@@ -210,6 +222,26 @@ struct AST
         return (Type() == T::classType ? static_cast<const T*>(this) : nullptr);
     }
 
+    // Creates a new instance of the exact type
+    virtual ASTPtr CreateInstance() const = 0;
+
+    // Makes a deep copy of the AST node
+    virtual ASTPtr Clone(CloneContext& context) const;
+
+    // Resolves any references after Clone(). Must be called after Clone() on the root cloned object.
+    virtual void ResolveCloneReferences(CloneContext& context) const { }
+
+    // Makes a deep copy of the AST node and returns it cast as type
+    template<typename T>
+    std::shared_ptr<T> CloneAs() const
+    {
+        CloneContext context;
+        auto clone = std::static_pointer_cast<T>(Clone(context));
+        ResolveCloneReferences(context);
+
+        return clone;
+    }
+
     SourceArea  area;   // Source code area.
     Flags       flags;  // Flags bitmask (default 0).
 };
@@ -236,6 +268,8 @@ struct Stmnt : public AST
     // Collects all variable-, buffer-, and sampler AST nodes with their identifiers in the specified map.
     virtual void CollectDeclIdents(std::map<const AST*, std::string>& declASTIdents) const;
 
+    ASTPtr Clone(CloneContext& context) const override;
+
     std::string                 comment; // Optional commentary for this statement. May be a multi-line string.
     std::vector<AttributePtr>   attribs; // Attribute list. May be empty.
 };
@@ -251,6 +285,8 @@ struct TypedAST : public AST
 
         // Resets the buffered type denoter.
         void ResetTypeDenoter();
+
+        ASTPtr Clone(CloneContext& context) const override;
 
     protected:
 
@@ -300,6 +336,7 @@ struct Expr : public TypedAST
 
     // Returns the first expression of a different type than the specified type in this expression tree.
     Expr* FindFirstNotOf(const Types exprType, unsigned int flags = SearchAll);
+
 };
 
 // Declaration AST base class.
@@ -319,6 +356,8 @@ struct Decl : public TypedAST
 
     // Returns true if this is an anonymous structure.
     bool IsAnonymous() const;
+
+    ASTPtr Clone(CloneContext& context) const override;
 
     // Identifier of the declaration object (may be empty, e.g. for anonymous structures).
     Identifier ident;
@@ -380,6 +419,8 @@ struct Program : public AST
 
     // Returns a usage-container of the specified intrinsic or null if the specified intrinsic was not registered to be used.
     const IntrinsicUsage* FetchIntrinsicUsage(const Intrinsic intrinsic) const;
+
+    void ResolveCloneReferences(CloneContext& context) const override;
 
     std::vector<StmntPtr>               globalStmnts;               // Global declaration statements.
 
@@ -597,6 +638,8 @@ struct VarDecl : public Decl
     // Adds the specified flag to this variable and all members and sub members of the structure, if the variable has a structure type.
     void AddFlagsRecursive(unsigned int varFlags);
 
+    void ResolveCloneReferences(CloneContext& context) const override;
+
     ObjectExprPtr                   namespaceExpr;                  // Optional namespace expression. May be null.
     std::vector<ArrayDimensionPtr>  arrayDims;                      // Array dimension list. May be empty.
     IndexedSemantic                 semantic;                       // Variable semantic. May be invalid.
@@ -633,6 +676,8 @@ struct BufferDecl : public Decl
     // Returns the buffer type of the parent's node type denoter.
     BufferType GetBufferType() const;
 
+    void ResolveCloneReferences(CloneContext& context) const override;
+
     std::vector<ArrayDimensionPtr>  arrayDims;                  // Array dimension list. May be empty.
     std::vector<RegisterPtr>        slotRegisters;              // Slot register list. May be empty.
     std::vector<VarDeclStmntPtr>    annotations;                // Annotations can be ignored by analyzers and generators.
@@ -655,6 +700,8 @@ struct SamplerDecl : public Decl
     // Returns the sampler type of the parent's node type denoter.
     SamplerType GetSamplerType() const;
 
+    void ResolveCloneReferences(CloneContext& context) const override;
+
     std::vector<ArrayDimensionPtr>  arrayDims;                  // Array dimension list. May be empty.
     std::vector<RegisterPtr>        slotRegisters;              // Slot register list. May be empty.
     std::string                     textureIdent;               // Optional variable identifier of the texture object (for DX9 effect files).
@@ -676,6 +723,8 @@ struct StateDecl : public Decl
 
     // Returns the state type of the parent's node type denoter.
     StateType GetStateType() const;
+
+    void ResolveCloneReferences(CloneContext& context) const override;
 
     StateInitializerExprPtr       initializer;
     StateDeclStmnt*               declStmntRef    = nullptr;  // Reference to its declaration statmenet (parent node).
@@ -762,6 +811,8 @@ struct StructDecl : public Decl
     // Returns the member variable of the specified zero-based index, null on failure.
     VarDecl* IndexToMemberVar(std::size_t idx, bool includeBaseStructs = true) const;
 
+    void ResolveCloneReferences(CloneContext& context) const override;
+
     bool                            isClass                 = false;    // This struct was declared as 'class'.
     std::string                     baseStructName;                     // May be empty (if no inheritance is used).
     std::vector<StmntPtr>           localStmnts;                        // Local declaration statements.
@@ -784,6 +835,8 @@ struct AliasDecl : public Decl
     AST_INTERFACE(AliasDecl);
 
     TypeDenoterPtr DeriveTypeDenoter(const TypeDenoter* expectedTypeDenoter) override;
+
+    void ResolveCloneReferences(CloneContext& context) const override;
 
     TypeDenoterPtr  typeDenoter;            // Type denoter of the aliased type.
 
@@ -872,6 +925,8 @@ struct FunctionDecl : public Decl
         bool throwErrorIfNoMatch = true
     );
 
+    void ResolveCloneReferences(CloneContext& context) const override;
+
     TypeSpecifierPtr                returnType;                                 // Function return type (TypeSpecifier).
     std::vector<VarDeclStmntPtr>    parameters;                                 // Function parameter list.
     IndexedSemantic                 semantic            = Semantic::Undefined;  // Function return semantic; may be undefined.
@@ -901,6 +956,8 @@ struct UniformBufferDecl : public Decl
     // Derives the common storage layout type modifier of all variable members (see 'commonStorageLayout' member).
     TypeModifier DeriveCommonStorageLayout(const TypeModifier defaultStorgeLayout = TypeModifier::Undefined);
 
+    void ResolveCloneReferences(CloneContext& context) const override;
+
     UniformBufferType               bufferType          = UniformBufferType::Undefined; // Type of this uniform buffer. Must not be undefined.
     std::vector<RegisterPtr>        slotRegisters;                                      // Slot register list. May be empty.
     std::vector<StmntPtr>           localStmnts;                                        // Local declaration statements.
@@ -911,7 +968,7 @@ struct UniformBufferDecl : public Decl
     BasicDeclStmnt*                 declStmntRef        = nullptr;                      // Reference to its declaration statement (parent node). Must not be null.
 	
     // BEGIN BANSHEE CHANGES
-    int             extModifiers = 0;
+    int                             extModifiers = 0;
     // END BANSHEE CHANGES
 };
 
@@ -1292,6 +1349,8 @@ struct CallExpr : public Expr
     // Returns the expression which denotes the member function class instance (either the prefix expression or the first argument); see PushPrefixToArguments.
     Expr* GetMemberFuncObjectExpr() const;
 
+    void ResolveCloneReferences(CloneContext& context) const override;
+
     ExprPtr                 prefixExpr;                                 // Optional prefix expression. May be null.
     bool                    isStatic            = false;                // Specifies whether this function is a static member.
     std::string             ident;                                      // Function name identifier. Empty for type constructors.
@@ -1377,6 +1436,8 @@ struct ObjectExpr : public Expr
 
     // Returns the variable AST node (if the symbol refers to one).
     VarDecl* FetchVarDecl() const;
+
+    void ResolveCloneReferences(CloneContext& context) const override;
 
     ExprPtr     prefixExpr;             // Optional prefix expression. May be null.
     bool        isStatic    = false;    // Specifies whether this object is a static member.

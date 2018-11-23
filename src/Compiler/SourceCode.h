@@ -41,6 +41,9 @@ class SourceCode
         // Sets the new source origin for the current source position (see "Pos()").
         void NextSourceOrigin(const std::string& filename, int lineOffset);
 
+        // Makes a copy of this object
+        std::shared_ptr<SourceCode> Copy() const;
+
         // Ignores the current character.
         inline void Ignore()
         {

@@ -48,6 +48,120 @@ bool IsDeclStmntAST(const AST::Types t)
     return (t >= AST::Types::VarDeclStmnt && t <= AST::Types::BasicDeclStmnt);
 }
 
+template<typename T>
+void CloneAST(const T& src, T& dst)
+{
+    dst = src;
+}
+
+template<typename T>
+void CloneAST(const std::shared_ptr<T>& src, std::shared_ptr<T>& dst)
+{
+    if (src)
+        dst = src->template CloneAs<T>();
+}
+
+template<typename T>
+void CloneAST(const std::vector<std::shared_ptr<T>>& src, std::vector<std::shared_ptr<T>>& dst)
+{
+    dst.resize(src.size());
+
+    for(size_t i = 0; i < src.size(); i++)
+    {
+        if(src[i])
+            dst[i] = src[i]->template CloneAs<T>();
+    }
+}
+
+template<typename T>
+void ResolveAST(CloneContext& context, T* src, T*& dst)
+{
+    if(src)
+    {
+        auto iterFind = context.lookup.find(src);
+        if (iterFind != context.lookup.end())
+            dst = static_cast<T*>(iterFind->second.get());
+        else
+            RuntimeErr("Resolving clone references failed");
+    }
+    else
+        dst = nullptr;
+}
+
+template<typename T>
+void ResolveAST(CloneContext& context, std::vector<T*> src, std::vector<T*>& dst)
+{
+    dst.resize(src.size());
+
+    for(size_t i = 0; i < src.size(); i++)
+    {
+        if(src[i])
+        {
+            auto iterFind = context.lookup.find(src[i]);
+            if (iterFind != context.lookup.end())
+                dst[i] = static_cast<T*>(iterFind->second.get());
+            else
+                RuntimeErr("Resolving clone references failed");
+        }
+        else
+            dst[i] = nullptr;
+    }
+}
+
+template<typename T>
+void ResolveAST(CloneContext& context, std::set<T*> src, std::set<T*>& dst)
+{
+    for(auto& entry : src)
+    {
+        if(entry)
+        {
+            auto iterFind = context.lookup.find(entry);
+            if (iterFind != context.lookup.end())
+                dst.insert(static_cast<T*>(iterFind->second.get()));
+            else
+                RuntimeErr("Resolving clone references failed");
+        }
+        else
+            dst.insert(nullptr);
+    }
+}
+
+template<typename T>
+void ResolveAST(CloneContext& context, std::map<std::string, T*> src, std::map<std::string, T*>& dst)
+{
+    for(auto& entry : src)
+    {
+        if(entry.second)
+        {
+            auto iterFind = context.lookup.find(entry.second);
+            if (iterFind != context.lookup.end())
+                dst[entry.first] = static_cast<T*>(iterFind->second.get());
+            else
+                RuntimeErr("Resolving clone references failed");
+        }
+        else
+            dst[entry.first] = nullptr;
+    }
+}
+
+#define CLONE_FIELD(x) CloneAST(x, instance->x)
+#define CLONE_BEGIN(x, b) ASTPtr x::Clone(CloneContext& context) const             \
+{                                                                                   \
+    std::shared_ptr<x> instance = std::static_pointer_cast<x>(b::Clone(context));
+
+#define CLONE_END return instance; }
+
+#define CLONE_REF_BEGIN(x) void x::ResolveCloneReferences(CloneContext& context) const                                      \
+{                                                                                                                           \
+    auto iterFindMain = context.lookup.find(this);                                                                          \
+    if (iterFindMain == context.lookup.end())                                                                               \
+        RuntimeErr("Resolving clone references failed, cannot find a root matching clone object for " #x ".");              \
+                                                                                                                            \
+    std::shared_ptr<x> clone = std::static_pointer_cast<x>(iterFindMain->second);
+
+#define CLONE_REF_FIELD(x) ResolveAST(context, x, clone->x);
+
+#define CLONE_REF_END }
 
 /* ----- AST ----- */
 
@@ -56,6 +170,15 @@ AST::~AST()
     // dummy
 }
 
+ASTPtr AST::Clone(CloneContext& context) const
+{
+    ASTPtr instance = CreateInstance();
+    context.lookup[this] = instance;
+
+    CLONE_FIELD(area);
+    CLONE_FIELD(flags);
+CLONE_END
+
 
 /* ----- Stmnt ----- */
 
@@ -63,6 +186,11 @@ void Stmnt::CollectDeclIdents(std::map<const AST*, std::string>& declASTIdents) 
 {
     // dummy
 }
+
+CLONE_BEGIN(Stmnt, AST)
+    CLONE_FIELD(comment);
+    CLONE_FIELD(attribs);
+CLONE_END
 
 
 /* ----- TypedAST ----- */
@@ -79,6 +207,10 @@ void TypedAST::ResetTypeDenoter()
     bufferedTypeDenoter_.reset();
 }
 
+CLONE_BEGIN(TypedAST, AST)
+    if(bufferedTypeDenoter_)
+        instance->bufferedTypeDenoter_ = bufferedTypeDenoter_->Copy();
+CLONE_END
 
 /* ----- Expr ----- */
 
@@ -175,6 +307,10 @@ bool Decl::IsAnonymous() const
     return ident.Empty();
 }
 
+CLONE_BEGIN(Decl, TypedAST)
+    instance->ident = ident.Copy();
+CLONE_END
+
 
 /* ----- Program ----- */
 
@@ -212,6 +348,53 @@ const IntrinsicUsage* Program::FetchIntrinsicUsage(const Intrinsic intrinsic) co
     return (it != usedIntrinsics.end() ? &(it->second) : nullptr);
 }
 
+CLONE_BEGIN(Program, AST)
+    CLONE_FIELD(globalStmnts);
+    CLONE_FIELD(disabledAST);
+    CLONE_FIELD(usedIntrinsics);
+    CLONE_FIELD(usedMatrixSubscripts);
+    CLONE_FIELD(layoutTessEvaluation);
+    CLONE_FIELD(layoutGeometry);
+    CLONE_FIELD(layoutFragment);
+    CLONE_FIELD(layoutCompute);
+    CLONE_FIELD(layoutTessControl.outputControlPoints);
+    CLONE_FIELD(layoutTessControl.maxTessFactor);
+
+    if(sourceCode)
+        instance->sourceCode = sourceCode->Copy();
+CLONE_END
+
+CLONE_REF_BEGIN(Program)
+    CLONE_REF_FIELD(entryPointRef)
+    CLONE_REF_FIELD(layoutTessControl.patchConstFunctionRef)
+CLONE_REF_END
+
+/* ----- CodeBlock ----- */
+
+CLONE_BEGIN(CodeBlock, AST)
+    CLONE_FIELD(stmnts);
+CLONE_END
+
+/* ----- SamplerValue ----- */
+
+CLONE_BEGIN(SamplerValue, AST)
+    CLONE_FIELD(name);
+    CLONE_FIELD(value);
+CLONE_END
+
+/* ----- StateVaue ----- */
+
+CLONE_BEGIN(StateValue, AST)
+    CLONE_FIELD(name);
+    CLONE_FIELD(value);
+CLONE_END
+
+/* ----- Attribute ----- */
+
+CLONE_BEGIN(Attribute, AST)
+    CLONE_FIELD(attributeType);
+    CLONE_FIELD(arguments);
+CLONE_END
 
 /* ----- SwitchCase ----- */
 
@@ -220,6 +403,10 @@ bool SwitchCase::IsDefaultCase() const
     return (expr == nullptr);
 }
 
+CLONE_BEGIN(SwitchCase, AST)
+    CLONE_FIELD(expr);
+    CLONE_FIELD(stmnts);
+CLONE_END
 
 /* ----- Register ----- */
 
@@ -249,6 +436,12 @@ Register* Register::GetForTarget(const std::vector<RegisterPtr>& registers, cons
     return nullptr;
 }
 
+CLONE_BEGIN(Register, AST)
+    CLONE_FIELD(shaderTarget);
+    CLONE_FIELD(registerType);
+    CLONE_FIELD(slot);
+CLONE_END
+
 
 /* ----- PackOffset ----- */
 
@@ -269,6 +462,11 @@ std::string PackOffset::ToString() const
 
     return s;
 }
+
+CLONE_BEGIN(PackOffset, AST)
+    CLONE_FIELD(registerName);
+    CLONE_FIELD(vectorComponent);
+CLONE_END
 
 
 /* ----- ArrayDimension ----- */
@@ -317,6 +515,10 @@ std::vector<int> ArrayDimension::GetArrayDimensionSizes(const std::vector<ArrayD
 }
 #endif
 
+CLONE_BEGIN(ArrayDimension, TypedAST)
+    CLONE_FIELD(expr);
+    CLONE_FIELD(size);
+CLONE_END
 
 /* ----- TypeSpecifier ----- */
 
@@ -444,6 +646,22 @@ void TypeSpecifier::SwapMatrixStorageLayout(const TypeModifier defaultStorgeLayo
     typeModifiers = std::move(modifiers);
 }
 
+CLONE_BEGIN(TypeSpecifier, TypedAST)
+    CLONE_FIELD(isInput);
+    CLONE_FIELD(isOutput);
+    CLONE_FIELD(isUniform);
+
+    CLONE_FIELD(storageClasses);
+    CLONE_FIELD(interpModifiers);
+    CLONE_FIELD(typeModifiers);
+
+    CLONE_FIELD(primitiveType);
+    CLONE_FIELD(structDecl);
+
+    if(typeDenoter)
+        instance->typeDenoter = typeDenoter->Copy();
+CLONE_END
+
 
 /* ----- VarDecl ----- */
 
@@ -568,6 +786,26 @@ void VarDecl::AddFlagsRecursive(unsigned int varFlags)
     }
 }
 
+CLONE_BEGIN(VarDecl, Decl)
+    CLONE_FIELD(namespaceExpr);
+    CLONE_FIELD(arrayDims);
+    CLONE_FIELD(semantic);
+    CLONE_FIELD(packOffset);
+    CLONE_FIELD(annotations);
+    CLONE_FIELD(initializer);
+    CLONE_FIELD(initializerValue);
+    CLONE_FIELD(defaultValue);
+
+    if(customTypeDenoter)
+        instance->customTypeDenoter = customTypeDenoter->Copy();
+CLONE_END
+
+CLONE_REF_BEGIN(VarDecl)
+    CLONE_REF_FIELD(declStmntRef)
+    CLONE_REF_FIELD(bufferDeclRef)
+    CLONE_REF_FIELD(structDeclRef)
+    CLONE_REF_FIELD(staticMemberVarRef)
+CLONE_REF_END
 
 /* ----- BufferDecl ----- */
 
@@ -581,6 +819,18 @@ BufferType BufferDecl::GetBufferType() const
     return (declStmntRef ? declStmntRef->typeDenoter->bufferType : BufferType::Undefined);
 }
 
+CLONE_BEGIN(BufferDecl, Decl)
+    CLONE_FIELD(arrayDims);
+    CLONE_FIELD(slotRegisters);
+    CLONE_FIELD(annotations);
+    CLONE_FIELD(initializer);
+    CLONE_FIELD(defaultValue);
+CLONE_END
+
+
+CLONE_REF_BEGIN(BufferDecl)
+    CLONE_REF_FIELD(declStmntRef)
+CLONE_REF_END
 
 /* ----- SamplerDecl ----- */
 
@@ -594,6 +844,18 @@ SamplerType SamplerDecl::GetSamplerType() const
     return (declStmntRef ? declStmntRef->typeDenoter->samplerType : SamplerType::Undefined);
 }
 
+CLONE_BEGIN(SamplerDecl, Decl)
+    CLONE_FIELD(arrayDims);
+    CLONE_FIELD(slotRegisters);
+    CLONE_FIELD(textureIdent);
+    CLONE_FIELD(samplerValues);
+    CLONE_FIELD(alias);
+CLONE_END
+
+CLONE_REF_BEGIN(SamplerDecl)
+    CLONE_REF_FIELD(declStmntRef)
+CLONE_REF_END
+
 /* ----- StateDecl ----- */
 
 TypeDenoterPtr StateDecl::DeriveTypeDenoter(const TypeDenoter* /*expectedTypeDenoter*/)
@@ -605,6 +867,15 @@ StateType StateDecl::GetStateType() const
 {
     return (declStmntRef ? declStmntRef->type : StateType::Undefined);
 }
+
+CLONE_BEGIN(StateDecl, Decl)
+    CLONE_FIELD(initializer);
+CLONE_END
+
+CLONE_REF_BEGIN(StateDecl)
+    CLONE_REF_FIELD(declStmntRef)
+CLONE_REF_END
+
 
 /* ----- StructDecl ----- */
 
@@ -986,6 +1257,23 @@ VarDecl* StructDecl::IndexToMemberVar(std::size_t idx, bool includeBaseStructs) 
     return FindIndexOfStructMemberVar(*this, idx, includeBaseStructs);
 }
 
+CLONE_BEGIN(StructDecl, Decl)
+    CLONE_FIELD(isClass);
+    CLONE_FIELD(baseStructName);
+    CLONE_FIELD(localStmnts);
+    CLONE_FIELD(varMembers);
+    CLONE_FIELD(funcMembers);
+CLONE_END
+
+CLONE_REF_BEGIN(StructDecl)
+    CLONE_REF_FIELD(declStmntRef)
+    CLONE_REF_FIELD(baseStructRef)
+    CLONE_REF_FIELD(compatibleStructRef)
+    CLONE_REF_FIELD(systemValuesRef)
+    CLONE_REF_FIELD(parentStructDeclRefs)
+    CLONE_REF_FIELD(shaderOutputVarDeclRefs)
+CLONE_REF_END
+
 
 /* ----- AliasDecl ----- */
 
@@ -993,6 +1281,15 @@ TypeDenoterPtr AliasDecl::DeriveTypeDenoter(const TypeDenoter* /*expectedTypeDen
 {
     return typeDenoter;
 }
+
+CLONE_BEGIN(AliasDecl, Decl)
+    if(typeDenoter)
+        instance->typeDenoter = typeDenoter->Copy();
+CLONE_END
+
+CLONE_REF_BEGIN(AliasDecl)
+    CLONE_REF_FIELD(declStmntRef)
+CLONE_REF_END
 
 
 /* ----- FunctionDecl ----- */
@@ -1344,6 +1641,33 @@ FunctionDecl* FunctionDecl::FetchFunctionDeclFromList(
     return funcDeclCandidates.front();
 }
 
+CLONE_BEGIN(FunctionDecl, Decl)
+    CLONE_FIELD(returnType);
+    CLONE_FIELD(parameters);
+    CLONE_FIELD(semantic);
+    CLONE_FIELD(annotations);
+    CLONE_FIELD(codeBlock);
+CLONE_END
+
+CLONE_REF_BEGIN(FunctionDecl)
+    CLONE_REF_FIELD(inputSemantics.varDeclRefs);
+    CLONE_REF_FIELD(inputSemantics.varDeclRefsSV);
+    CLONE_REF_FIELD(outputSemantics.varDeclRefs);
+    CLONE_REF_FIELD(outputSemantics.varDeclRefsSV);
+    CLONE_REF_FIELD(declStmntRef);
+    CLONE_REF_FIELD(funcImplRef);
+    CLONE_REF_FIELD(funcForwardDeclRefs);
+    CLONE_REF_FIELD(structDeclRef);
+
+    clone->paramStructs.resize(paramStructs.size());
+    for(size_t i = 0; i < paramStructs.size(); i++)
+    {
+        CLONE_REF_FIELD(paramStructs[i].expr);
+        CLONE_REF_FIELD(paramStructs[i].varDecl);
+        CLONE_REF_FIELD(paramStructs[i].structDecl);
+    }
+CLONE_REF_END
+
 
 /* ----- UniformBufferDecl ----- */
 
@@ -1401,6 +1725,19 @@ TypeModifier UniformBufferDecl::DeriveCommonStorageLayout(const TypeModifier def
     return commonStorageLayout;
 }
 
+CLONE_BEGIN(UniformBufferDecl, Decl)
+    CLONE_FIELD(bufferType);
+    CLONE_FIELD(slotRegisters);
+    CLONE_FIELD(localStmnts);
+    CLONE_FIELD(varMembers);
+    CLONE_FIELD(commonStorageLayout);
+    CLONE_FIELD(extModifiers);
+CLONE_END
+
+CLONE_REF_BEGIN(UniformBufferDecl)
+    CLONE_REF_FIELD(declStmntRef)
+CLONE_REF_END
+
 
 /* ----- BufferDeclStmnt ----- */
 
@@ -1410,6 +1747,14 @@ void BufferDeclStmnt::CollectDeclIdents(std::map<const AST*, std::string>& declA
         declASTIdents[ast.get()] = ast->ident;
 }
 
+CLONE_BEGIN(BufferDeclStmnt, Stmnt)
+
+    if(typeDenoter)
+        instance->typeDenoter = std::static_pointer_cast<BufferTypeDenoter>(typeDenoter->Copy());
+
+    CLONE_FIELD(bufferDecls);
+CLONE_END
+
 
 /* ----- SamplerDeclStmnt ----- */
 
@@ -1418,6 +1763,29 @@ void SamplerDeclStmnt::CollectDeclIdents(std::map<const AST*, std::string>& decl
     for (const auto& ast : samplerDecls)
         declASTIdents[ast.get()] = ast->ident;
 }
+
+CLONE_BEGIN(SamplerDeclStmnt, Stmnt)
+
+    if(typeDenoter)
+        instance->typeDenoter = std::static_pointer_cast<SamplerTypeDenoter>(typeDenoter->Copy());
+
+    CLONE_FIELD(samplerDecls);
+CLONE_END
+
+
+/* ----- StateDeclStmnt ----- */
+
+CLONE_BEGIN(StateDeclStmnt, Stmnt)
+    CLONE_FIELD(type);
+    CLONE_FIELD(declObject);
+CLONE_END
+
+
+/* ----- BasicDeclStmnt ----- */
+
+CLONE_BEGIN(BasicDeclStmnt, Stmnt)
+    CLONE_FIELD(declObject);
+CLONE_END
 
 
 /* ----- VarDelcStmnt ----- */
@@ -1538,6 +1906,91 @@ StructDecl* VarDeclStmnt::FetchStructDeclRef() const
         return varDecls.front()->structDeclRef;
 }
 
+CLONE_BEGIN(VarDeclStmnt, Stmnt)
+    CLONE_FIELD(typeSpecifier);
+    CLONE_FIELD(varDecls);
+CLONE_END
+
+/* ----- AliasDeclStmnt ----- */
+
+CLONE_BEGIN(AliasDeclStmnt, Stmnt)
+    CLONE_FIELD(structDecl);
+    CLONE_FIELD(aliasDecls);
+CLONE_END
+
+/* ----- NullStmnt ----- */
+
+CLONE_BEGIN(NullStmnt, Stmnt)
+CLONE_END
+
+/* ----- CodeBlockStmnt ----- */
+
+CLONE_BEGIN(CodeBlockStmnt, Stmnt)
+    CLONE_FIELD(codeBlock);
+CLONE_END
+
+/* ----- ForLoopStmnt ----- */
+
+CLONE_BEGIN(ForLoopStmnt, Stmnt)
+    CLONE_FIELD(initStmnt);
+    CLONE_FIELD(condition);
+    CLONE_FIELD(iteration);
+    CLONE_FIELD(bodyStmnt);
+CLONE_END
+
+/* ----- WhileLoopStmnt ----- */
+
+CLONE_BEGIN(WhileLoopStmnt, Stmnt)
+    CLONE_FIELD(condition);
+    CLONE_FIELD(bodyStmnt);
+CLONE_END
+
+/* ----- DoWhileLoopStmnt ----- */
+
+CLONE_BEGIN(DoWhileLoopStmnt, Stmnt)
+    CLONE_FIELD(condition);
+    CLONE_FIELD(bodyStmnt);
+CLONE_END
+
+/* ----- IfStmnt ----- */
+
+CLONE_BEGIN(IfStmnt, Stmnt)
+    CLONE_FIELD(condition);
+    CLONE_FIELD(bodyStmnt);
+    CLONE_FIELD(elseStmnt);
+CLONE_END
+
+/* ----- ElseStmnt ----- */
+
+CLONE_BEGIN(ElseStmnt, Stmnt)
+    CLONE_FIELD(bodyStmnt);
+CLONE_END
+
+/* ----- SwitchStmnt ----- */
+
+CLONE_BEGIN(SwitchStmnt, Stmnt)
+    CLONE_FIELD(selector);
+    CLONE_FIELD(cases);
+CLONE_END
+
+/* ----- ExprStmnt ----- */
+
+CLONE_BEGIN(ExprStmnt, Stmnt)
+    CLONE_FIELD(expr);
+CLONE_END
+
+/* ----- ReturnStmnt ----- */
+
+CLONE_BEGIN(ReturnStmnt, Stmnt)
+    CLONE_FIELD(expr);
+CLONE_END
+
+/* ----- CtrlTransferStmnt ----- */
+
+CLONE_BEGIN(CtrlTransferStmnt, Stmnt)
+    CLONE_FIELD(transfer);
+CLONE_END
+
 
 /* ----- NullExpr ----- */
 
@@ -1549,6 +2002,9 @@ TypeDenoterPtr NullExpr::DeriveTypeDenoter(const TypeDenoter* /*expectedTypeDeno
     */
     return std::make_shared<BaseTypeDenoter>(DataType::Int);
 }
+
+CLONE_BEGIN(NullExpr, Expr)
+CLONE_END
 
 
 /* ----- SequenceExpr ----- */
@@ -1589,6 +2045,10 @@ void SequenceExpr::Append(const ExprPtr& expr)
         exprs.push_back(expr);
     }
 }
+
+CLONE_BEGIN(SequenceExpr, Expr)
+    CLONE_FIELD(exprs);
+CLONE_END
 
 
 /* ----- LiteralExpr ----- */
@@ -1677,6 +2137,11 @@ bool LiteralExpr::IsSpaceRequiredForSubscript() const
     return (!value.empty() && value.find('.') == std::string::npos && std::isdigit(static_cast<int>(value.back())));
 }
 
+CLONE_BEGIN(LiteralExpr, Expr)
+    CLONE_FIELD(value);
+    CLONE_FIELD(dataType);
+CLONE_END
+
 
 /* ----- TypeSpecifierExpr ----- */
 
@@ -1684,6 +2149,10 @@ TypeDenoterPtr TypeSpecifierExpr::DeriveTypeDenoter(const TypeDenoter* /*expecte
 {
     return typeSpecifier->GetTypeDenoter();
 }
+
+CLONE_BEGIN(TypeSpecifierExpr, Expr)
+    CLONE_FIELD(typeSpecifier);
+CLONE_END
 
 
 /* ----- TernaryExpr ----- */
@@ -1763,6 +2232,12 @@ bool TernaryExpr::IsVectorCondition() const
     return false;
 }
 
+CLONE_BEGIN(TernaryExpr, Expr)
+    CLONE_FIELD(condExpr);
+    CLONE_FIELD(thenExpr);
+    CLONE_FIELD(elseExpr);
+CLONE_END
+
 
 /* ----- BinaryExpr ----- */
 
@@ -1812,6 +2287,12 @@ const Expr* BinaryExpr::Find(const FindPredicateConstFunctor& predicate, unsigne
     return nullptr;
 }
 
+CLONE_BEGIN(BinaryExpr, Expr)
+    CLONE_FIELD(lhsExpr);
+    CLONE_FIELD(op);
+    CLONE_FIELD(rhsExpr);
+CLONE_END
+
 
 /* ----- UnaryExpr ----- */
 
@@ -1851,6 +2332,11 @@ const ObjectExpr* UnaryExpr::FetchLValueExpr() const
         return nullptr;
 }
 
+CLONE_BEGIN(UnaryExpr, Expr)
+    CLONE_FIELD(op);
+    CLONE_FIELD(expr);
+CLONE_END
+
 
 /* ----- PostUnaryExpr ----- */
 
@@ -1875,6 +2361,11 @@ const Expr* PostUnaryExpr::Find(const FindPredicateConstFunctor& predicate, unsi
     }
     return nullptr;
 }
+
+CLONE_BEGIN(PostUnaryExpr, Expr)
+    CLONE_FIELD(op);
+    CLONE_FIELD(expr);
+CLONE_END
 
 
 /* ----- CallExpr ----- */
@@ -2089,6 +2580,22 @@ Expr* CallExpr::GetMemberFuncObjectExpr() const
     return nullptr;
 }
 
+CLONE_BEGIN(CallExpr, Expr)
+    CLONE_FIELD(prefixExpr);
+    CLONE_FIELD(isStatic);
+    CLONE_FIELD(ident);
+    CLONE_FIELD(arguments);
+    CLONE_FIELD(intrinsic);
+
+    if(typeDenoter)
+        instance->typeDenoter = typeDenoter->Copy();
+CLONE_END
+
+CLONE_REF_BEGIN(CallExpr)
+    CLONE_REF_FIELD(funcDeclRef)
+    CLONE_REF_FIELD(defaultArgumentRefs)
+CLONE_REF_END
+
 
 /* ----- BracketExpr ----- */
 
@@ -2120,6 +2627,10 @@ IndexedSemantic BracketExpr::FetchSemantic() const
 {
     return expr->FetchSemantic();
 }
+
+CLONE_BEGIN(BracketExpr, Expr)
+    CLONE_FIELD(expr);
+CLONE_END
 
 
 /* ----- AssignExpr ----- */
@@ -2155,6 +2666,12 @@ const ObjectExpr* AssignExpr::FetchLValueExpr() const
 {
     return lvalueExpr->FetchLValueExpr();
 }
+
+CLONE_BEGIN(AssignExpr, Expr)
+    CLONE_FIELD(lvalueExpr);
+    CLONE_FIELD(op);
+    CLONE_FIELD(rvalueExpr);
+CLONE_END
 
 
 /* ----- ObjectExpr ----- */
@@ -2294,6 +2811,16 @@ VarDecl* ObjectExpr::FetchVarDecl() const
     return FetchSymbol<VarDecl>();
 }
 
+CLONE_BEGIN(ObjectExpr, Expr)
+    CLONE_FIELD(prefixExpr);
+    CLONE_FIELD(isStatic);
+    CLONE_FIELD(ident);
+CLONE_END
+
+CLONE_REF_BEGIN(ObjectExpr)
+    CLONE_REF_FIELD(symbolRef)
+CLONE_REF_END
+
 
 /* ----- ArrayExpr ----- */
 
@@ -2333,6 +2860,11 @@ std::size_t ArrayExpr::NumIndices() const
     return arrayIndices.size();
 }
 
+CLONE_BEGIN(ArrayExpr, Expr)
+    CLONE_FIELD(prefixExpr);
+    CLONE_FIELD(arrayIndices);
+CLONE_END
+
 
 /* ----- CastExpr ----- */
 
@@ -2360,6 +2892,11 @@ const Expr* CastExpr::Find(const FindPredicateConstFunctor& predicate, unsigned 
     }
     return nullptr;
 }
+
+CLONE_BEGIN(CastExpr, Expr)
+    CLONE_FIELD(typeSpecifier);
+    CLONE_FIELD(expr);
+CLONE_END
 
 
 /* ----- InitializerExpr ----- */
@@ -2574,6 +3111,15 @@ bool InitializerExpr::NextArrayIndices(std::vector<int>& arrayIndices) const
     return NextArrayIndicesFromInitializerExpr(this, arrayIndices, 0);
 }
 
+CLONE_BEGIN(InitializerExpr, Expr)
+    CLONE_FIELD(exprs);
+CLONE_END
+
+/* ----- StateInitializerExpr ----- */
+
+CLONE_BEGIN(StateInitializerExpr, Expr)
+    CLONE_FIELD(exprs);
+CLONE_END
 
 } // /namespace Xsc
 
