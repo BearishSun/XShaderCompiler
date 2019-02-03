@@ -131,7 +131,7 @@ struct BindingSlot
 
 // BEGIN BANSHEE CHANGES
 
-enum class UniformType
+enum class VariableType
 {
     Buffer,
     UniformBuffer,
@@ -363,8 +363,24 @@ union DefaultValue
     int handle;
 };
 
+//! Information about a variable declaration
+struct Variable
+{
+    //! Identifier of the element.
+    std::string ident;
+
+    //! Data type of the element.
+    VariableType type = VariableType::Variable;
+
+    //! Determines actual type of the element. Contents depend on "type".
+    int baseType = 0;
+
+    //! Number of elements in the array, if the variable is an array. Flattened if multi-dimensional array.
+    int arraySize = 1;
+};
+
 //! A single element in a constant buffer or an opaque type
-struct Uniform
+struct Uniform : Variable
 {
     enum Flags
     {
@@ -373,15 +389,6 @@ struct Uniform
         Internal    = 1 << 0,
         Color       = 1 << 1
     };
-
-    //! Identifier of the element.
-    std::string ident;
-
-    //! Data type of the element.
-    UniformType type = UniformType::Variable;
-
-    //! Determines actual type of the element. Contents depend on "type".
-    int baseType = 0;
 
     //! Index of the uniform block this uniform belongs to. -1 if none.
     int uniformBlock = -1;
@@ -394,6 +401,13 @@ struct Uniform
 
     //! In case the parameter is used as a destination for sprite animation UVs, identifier of the texture its animating
     std::string spriteUVRef;
+};
+
+//! Information about a struct type
+struct Struct
+{
+    std::string name;
+    std::vector<Variable> members;
 };
 
 //! Single parameter in a function.
@@ -467,6 +481,7 @@ struct ReflectionData
 
     // BEGIN BANSHEE CHANGES
     std::vector<Uniform>                uniforms;
+    std::vector<Struct>                 structs;
     std::vector<DefaultValue>           defaultValues;
 
     std::vector<Function>               functions;

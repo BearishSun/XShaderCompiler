@@ -59,7 +59,11 @@ class ReflectionAnalyzer : private Visitor
         DECL_VISIT_PROC( UniformBufferDecl );
         DECL_VISIT_PROC( BufferDeclStmnt   );
 
+        DECL_VISIT_PROC( StructDecl        );
+
         /* --- Helper functions for code reflection --- */
+
+        void ReflectStruct(StructDecl* ast, Reflection::Struct& output);
 
         void ReflectSamplerValue(SamplerValue* ast, Reflection::SamplerState& samplerState);
         void ReflectSamplerValueFilter(const std::string& value, Reflection::Filter& filter, const AST* ast = nullptr);

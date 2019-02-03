@@ -125,7 +125,7 @@ IMPLEMENT_VISIT_PROC(SamplerDecl)
 
     Reflection::Uniform uniform;
     uniform.ident = ast->ident;
-    uniform.type = Reflection::UniformType::Sampler;
+    uniform.type = Reflection::VariableType::Sampler;
     uniform.baseType = 0;
 
     data_->uniforms.push_back(uniform);
@@ -408,6 +408,70 @@ IMPLEMENT_VISIT_PROC(FunctionDecl)
     Visitor::VisitFunctionDecl(ast, args);
 }
 
+void ReflectionAnalyzer::ReflectStruct(StructDecl* ast, Reflection::Struct& output)
+{
+    if (ast->baseStructRef)
+        ReflectStruct(ast, output);
+
+    for (auto& stmt : ast->varMembers)
+    {
+        Reflection::VariableType type;
+        int baseType = -1;
+        if (auto structTypeDenoter = stmt->typeSpecifier->typeDenoter->As<StructTypeDenoter>())
+        {
+            type = Reflection::VariableType::Struct;
+
+            int i = 0;
+            for (auto& entry : data_->structs)
+            {
+                if (entry.name == structTypeDenoter->Ident())
+                {
+                    baseType = i;
+                    break;
+                }
+
+                i++;
+            }
+
+            if(baseType == -1)
+                Warning("Cannot find definition for embedded struct type.", ast);
+        }
+        else
+        {
+            type = Reflection::VariableType::Variable;
+
+            if (auto baseTypeDenoter = stmt->typeSpecifier->typeDenoter->As<BaseTypeDenoter>())
+                baseType = (int)DataTypeToReflType(baseTypeDenoter->dataType);
+        }
+
+        for (auto& memberDecl : stmt->varDecls)
+        {
+            Reflection::Variable member;
+            member.ident = memberDecl->ident;
+            member.type = type;
+            member.baseType = baseType;
+
+            for (auto& arrayDims : memberDecl->arrayDims)
+            {
+                int arraySize = arrayDims->size <= 0 ? 1 : arrayDims->size;
+                member.arraySize *= arraySize;
+            }
+
+            output.members.push_back(member);
+        }
+    };
+}
+
+IMPLEMENT_VISIT_PROC(StructDecl)
+{
+    data_->structs.emplace_back();
+
+    Reflection::Struct& structDesc = data_->structs.back();
+    structDesc.name = ast->ident;
+
+    ReflectStruct(ast, structDesc);
+}
+
 IMPLEMENT_VISIT_PROC(UniformBufferDecl)
 {
     // BEGIN BANSHEE CHANGES
@@ -421,7 +485,7 @@ IMPLEMENT_VISIT_PROC(UniformBufferDecl)
 
         Reflection::Uniform uniform;
         uniform.ident = ast->ident;
-        uniform.type = Reflection::UniformType::UniformBuffer;
+        uniform.type = Reflection::VariableType::UniformBuffer;
         uniform.baseType = 0;
 
         if ((ast->extModifiers & ExtModifiers::Internal) != 0)
@@ -431,18 +495,32 @@ IMPLEMENT_VISIT_PROC(UniformBufferDecl)
 
         for(auto& stmt : ast->varMembers)
         {
-            Reflection::UniformType type;
-            DataType baseType = DataType::Undefined;
+            Reflection::VariableType type;
+            int baseType = 0;
 
             BaseTypeDenoter* baseTypeDenoter = nullptr;
-            if (stmt->typeSpecifier->typeDenoter->As<StructTypeDenoter>())
-                type = Reflection::UniformType::Struct;
+            if (StructTypeDenoter* structTypeDenoter = stmt->typeSpecifier->typeDenoter->As<StructTypeDenoter>())
+            {
+                type = Reflection::VariableType::Struct;
+
+                int i = 0;
+                for (auto& entry : data_->structs)
+                {
+                    if (entry.name == structTypeDenoter->Ident())
+                    {
+                        baseType = i;
+                        break;
+                    }
+
+                    i++;
+                }
+            }
             else
             {
-                type = Reflection::UniformType::Variable;
+                type = Reflection::VariableType::Variable;
 
                 if (baseTypeDenoter = stmt->typeSpecifier->typeDenoter->As<BaseTypeDenoter>())
-                    baseType = baseTypeDenoter->dataType;
+                    baseType = (int)DataTypeToReflType(baseTypeDenoter->dataType);
             }
             
             int blockIdx = (int)data_->constantBuffers.size() - 1;
@@ -452,9 +530,15 @@ IMPLEMENT_VISIT_PROC(UniformBufferDecl)
                 Reflection::Uniform uniform;
                 uniform.ident = decl->ident;
                 uniform.type = type;
-                uniform.baseType = (int)DataTypeToReflType(baseType);
+                uniform.baseType = baseType;
                 uniform.uniformBlock = blockIdx;
                 uniform.flags = 0;
+
+                for (auto& arrayDims : decl->arrayDims)
+                {
+                    int arraySize = arrayDims->size <= 0 ? 1 : arrayDims->size;
+                    uniform.arraySize *= arraySize;
+                }
 
                 if(baseTypeDenoter != nullptr)
                 {
@@ -512,7 +596,7 @@ IMPLEMENT_VISIT_PROC(BufferDeclStmnt)
 
                 Reflection::Uniform uniform;
                 uniform.ident = bufferDecl->ident;
-                uniform.type = Reflection::UniformType::Buffer;
+                uniform.type = Reflection::VariableType::Buffer;
                 uniform.baseType = (int)BufferTypeToReflType(ast->typeDenoter->bufferType);
 
                 if ((ast->typeDenoter->extModifiers & ExtModifiers::Internal) != 0)
