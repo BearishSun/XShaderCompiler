@@ -118,16 +118,11 @@ class HLSLGenerator : public Generator
         /* ----- Global layouts ----- */
 
         void WriteGlobalLayouts();
-        bool WriteGlobalLayoutsTessControl(const Program::LayoutTessControlShader& layout);
-        bool WriteGlobalLayoutsTessEvaluation(const Program::LayoutTessEvaluationShader& layout);
-        bool WriteGlobalLayoutsGeometry(const Program::LayoutGeometryShader& layout);
-        bool WriteGlobalLayoutsFragment(const Program::LayoutFragmentShader& layout);
-        bool WriteGlobalLayoutsCompute(const Program::LayoutComputeShader& layout);
-
-        /* ----- Built-in block redeclarations ----- */
-
-        void WriteBuiltinBlockRedeclarations();
-        void WriteBuiltinBlockRedeclarationsPerVertex(bool input, const std::string& name = "");
+        void WriteGlobalLayoutsTessControl(const Program::LayoutTessControlShader& layout);
+        void WriteGlobalLayoutsTessEvaluation(const Program::LayoutTessEvaluationShader& layout);
+        void WriteGlobalLayoutsGeometry(const Program::LayoutGeometryShader& layout);
+        void WriteGlobalLayoutsFragment(const Program::LayoutFragmentShader& layout);
+        void WriteGlobalLayoutsCompute(const Program::LayoutComputeShader& layout);
 
         /* ----- Uniforms ----- */
 
@@ -159,9 +154,6 @@ class HLSLGenerator : public Generator
         /* ----- Function declaration ----- */
 
         void WriteFunction(FunctionDecl* ast);
-        void WriteFunctionEntryPoint(FunctionDecl* ast);
-        void WriteFunctionEntryPointBody(FunctionDecl* ast);
-        void WriteFunctionSecondaryEntryPoint(FunctionDecl* ast);
 
         /* ----- Call expressions ----- */
 
@@ -177,8 +169,6 @@ class HLSLGenerator : public Generator
         /* ----- BufferDecl ----- */
 
         void WriteBufferDecl(BufferDecl* bufferDecl);
-        void WriteBufferDeclTexture(BufferDecl* bufferDecl);
-        void WriteBufferDeclStorageBuffer(BufferDecl* bufferDecl);
 
         /* ----- SamplerDecl ----- */
 

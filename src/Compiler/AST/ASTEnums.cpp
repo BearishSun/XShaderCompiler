@@ -1380,8 +1380,9 @@ std::string IndexedSemantic::ToString() const
     }
     else
         s = SemanticToString(semantic_);
-    
-    s += std::to_string(index_);
+
+    if(index_ != 0)
+        s += std::to_string(index_);
 
     return s;
 }
