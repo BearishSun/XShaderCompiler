@@ -40,6 +40,15 @@ T MapKeywordToType(const Dictionary<T>& typeDict, const std::string& keyword, co
         RuntimeErr(R_FailedToMapFromHLSLKeyword(keyword, typeName));
 }
 
+template <typename T>
+std::string MapTypeToKeyword(const Dictionary<T>& typeDict, T type)
+{
+    if(auto keyword = typeDict.EnumToString(type))
+        return *keyword;
+
+    return R_Undefined;
+}
+
 
 /* ----- HLSL Keywords ----- */
 
@@ -751,6 +760,12 @@ StorageClass HLSLKeywordToStorageClass(const std::string& keyword)
     return MapKeywordToType(typeDict, keyword, R_StorageClass);
 }
 
+std::string StorageClassToHLSLKeyword(StorageClass value)
+{
+    static const auto typeDict = GenerateStorageClassDict();
+    return MapTypeToKeyword(typeDict, value);
+}
+
 
 /* ----- InterpModifier Mapping ----- */
 
@@ -774,6 +789,11 @@ InterpModifier HLSLKeywordToInterpModifier(const std::string& keyword)
     return MapKeywordToType(typeDict, keyword, R_InterpModifier);
 }
 
+std::string InterpModifierToHLSLKeyword(InterpModifier value)
+{
+    static const auto typeDict = GenerateInterpModifierDict();
+    return MapTypeToKeyword(typeDict, value);
+}
 
 /* ----- TypeModifier Mapping ----- */
 
@@ -796,6 +816,12 @@ TypeModifier HLSLKeywordToTypeModifier(const std::string& keyword)
 {
     static const auto typeDict = GenerateTypeModifierDict();
     return MapKeywordToType(typeDict, keyword, R_TypeModifier);
+}
+
+std::string TypeModifierToHLSLKeyword(TypeModifier value)
+{
+    static const auto typeDict = GenerateTypeModifierDict();
+    return MapTypeToKeyword(typeDict, value);
 }
 
 
@@ -961,6 +987,11 @@ AttributeType HLSLKeywordToAttributeType(const std::string& keyword)
     return typeDict.StringToEnumOrDefault(keyword, AttributeType::Undefined);
 }
 
+std::string AttributeTypeToHLSLKeyword(AttributeType value)
+{
+    static const auto typeDict = GenerateAttributeTypeDict();
+    return MapTypeToKeyword(typeDict, value);
+}
 
 /* ----- AttributeValue Mapping ----- */
 
@@ -990,6 +1021,12 @@ AttributeValue HLSLKeywordToAttributeValue(const std::string& keyword)
 {
     static const auto typeMap = GenerateAttributeValueDict();
     return typeMap.StringToEnumOrDefault(keyword, AttributeValue::Undefined);
+}
+
+std::string AttributeValueToHLSLKeyword(AttributeValue value)
+{
+    static const auto typeDict = GenerateAttributeValueDict();
+    return MapTypeToKeyword(typeDict, value);
 }
 
 

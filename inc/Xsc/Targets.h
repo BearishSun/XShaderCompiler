@@ -73,6 +73,8 @@ enum class OutputShaderVersion
 
     VKSL450 = (0x00020000 + 450),   //!< VKSL 4.50 (Vulkan 1.0).
     VKSL    = 0x0002ffff,           //!< Auto-detect minimum required VKSL version (for Vulkan/SPIR-V).
+
+    HLSL    = 0x0003ffff            //!< Auto-detect minimum required HLSL version
 };
 
 //! Intermediate language enumeration.
@@ -110,6 +112,9 @@ XSC_EXPORT bool IsLanguageESSL(const OutputShaderVersion shaderVersion);
 
 //! Returns true if the shader output version specifies VKSL (for Vulkan).
 XSC_EXPORT bool IsLanguageVKSL(const OutputShaderVersion shaderVersion);
+
+//! Returns true if the shader output version specifies HKSL (for DirectX).
+XSC_EXPORT bool IsLanguageHLSL(const OutputShaderVersion shaderVersion);
 
 //! Returns the enumeration of all supported GLSL extensions as a map of extension name and version number.
 XSC_EXPORT const std::map<std::string, int>& GetGLSLExtensionEnumeration();

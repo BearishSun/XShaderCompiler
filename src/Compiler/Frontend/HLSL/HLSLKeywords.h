@@ -39,11 +39,20 @@ PrimitiveType HLSLKeywordToPrimitiveType(const std::string& keyword);
 // Returns the storage class for the specified HLSL keyword or throws an std::runtime_error on failure.
 StorageClass HLSLKeywordToStorageClass(const std::string& keyword);
 
+// Returns the HLSL keyword for the specified storage class.
+std::string StorageClassToHLSLKeyword(StorageClass value);
+
 // Returns the interpolation modifier for the specified HLSL keyword or throws an std::runtime_error on failure.
 InterpModifier HLSLKeywordToInterpModifier(const std::string& keyword);
 
+// Returns the HLSL keyword for the specified interpolation modifier.
+std::string InterpModifierToHLSLKeyword(InterpModifier value);
+
 // Returns the type modifier for the specified HLSL keyword or throws an std::runtime_error on failure.
 TypeModifier HLSLKeywordToTypeModifier(const std::string& keyword);
+
+// Returns the HLSL keyword for the specified type modifier.
+std::string TypeModifierToHLSLKeyword(TypeModifier value);
 
 // Returns the uniform buffer type for the specified HLSL keyword or throws an std::runtime_error on failure.
 UniformBufferType HLSLKeywordToUniformBufferType(const std::string& keyword);
@@ -57,8 +66,14 @@ SamplerType HLSLKeywordToSamplerType(const std::string& keyword);
 // Returns the attribute type for the specified HLSL keyword or returns AttributeType::Undefined.
 AttributeType HLSLKeywordToAttributeType(const std::string& keyword);
 
+// Returns the HLSL keyword for the specified attribute type.
+std::string AttributeTypeToHLSLKeyword(AttributeType value);
+
 // Returns the attribute value for the specified HLSL keyword or returns AttributeValue::Undefined.
 AttributeValue HLSLKeywordToAttributeValue(const std::string& keyword);
+
+// Returns the HLSL keyword for the specified attribute value.
+std::string AttributeValueToHLSLKeyword(AttributeValue value);
 
 // Returns the semantic for the specified identifier or Semantic::UserDefined if the identifier is not reserved.
 IndexedSemantic HLSLKeywordToSemantic(const std::string& ident, bool useD3D10Semantics = true);

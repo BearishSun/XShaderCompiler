@@ -110,6 +110,11 @@ XSC_EXPORT bool IsLanguageVKSL(const OutputShaderVersion shaderVersion)
     return (shaderVersion == OutputShaderVersion::VKSL450 || shaderVersion == OutputShaderVersion::VKSL);
 }
 
+XSC_EXPORT bool IsLanguageHLSL(const OutputShaderVersion shaderVersion)
+{
+    return shaderVersion == OutputShaderVersion::HLSL;
+}
+
 XSC_EXPORT const std::map<std::string, int>& GetGLSLExtensionEnumeration()
 {
     return GetGLSLExtensionVersionMap();

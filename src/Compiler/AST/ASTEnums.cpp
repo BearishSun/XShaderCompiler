@@ -924,6 +924,17 @@ int GetBufferTypeTextureDim(const BufferType t)
 
 /* ----- SamplerType Enum ----- */
 
+static const std::map<SamplerType, std::string> g_mapSamplerType
+{
+    { SamplerType::SamplerState,           "SamplerState"            },
+    { SamplerType::SamplerComparisonState, "SamplerComparisonState"  },
+};
+
+std::string SamplerTypeToString(const SamplerType t)
+{
+    return TypeToString(g_mapSamplerType, t, "SamplerType");
+}
+
 bool IsSamplerStateType(const SamplerType t)
 {
     return (t >= SamplerType::SamplerState && t <= SamplerType::SamplerComparisonState);

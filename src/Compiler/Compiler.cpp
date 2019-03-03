@@ -23,7 +23,7 @@
 
 #include <sstream>
 #include <stdexcept>
-
+#include "HLSL/HLSLGenerator.h"
 
 namespace Xsc
 {
@@ -241,6 +241,11 @@ bool Compiler::CompileShaderPrimary(
     {
         /* Generate GLSL output code */
         GLSLGenerator generator(log_);
+        generatorResult = generator.GenerateCode(*program, inputDesc, outputDesc, log_);
+    }
+    else if(IsLanguageHLSL(outputDesc.shaderVersion))
+    {
+        HLSLGenerator generator(log_);
         generatorResult = generator.GenerateCode(*program, inputDesc, outputDesc, log_);
     }
 

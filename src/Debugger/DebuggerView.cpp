@@ -202,6 +202,8 @@ void DebuggerView::CreateLayoutPropertyGridShaderOutput(wxPropertyGrid& pg)
 
         choices0.Add("VKSL (Auto-Detect)");
         choices0.Add("VKSL450");
+
+        choices0.Add("HLSL (Auto-Detect)");
     }
     pg.Append(new wxEnumProperty("Shader Version", "outputVersion", choices0));
 }
@@ -401,9 +403,11 @@ void DebuggerView::OnPropertyGridChange(wxPropertyGridEvent& event)
 
             T::VKSL,
             T::VKSL450,
+
+            T::HLSL
         };
 
-        return (idx >= 0 && idx < 20 ? versions[idx] : T::GLSL);
+        return (idx >= 0 && idx < 21 ? versions[idx] : T::GLSL);
     };
 
     /* --- Main options --- */

@@ -71,6 +71,7 @@ file(GLOB FilesSrcCompilerFrontendHLSL ${PROJECT_SOURCE_DIR}/src/Compiler/Fronte
 file(GLOB FilesSrcCompilerFrontendGLSL ${PROJECT_SOURCE_DIR}/src/Compiler/Frontend/GLSL/*.*)
 file(GLOB FilesSrcCompilerBackend ${PROJECT_SOURCE_DIR}/src/Compiler/Backend/*.*)
 file(GLOB FilesSrcCompilerBackendGLSL ${PROJECT_SOURCE_DIR}/src/Compiler/Backend/GLSL/*.*)
+file(GLOB FilesSrcCompilerBackendHLSL ${PROJECT_SOURCE_DIR}/src/Compiler/Backend/HLSL/*.*)
 file(GLOB FilesSrcCompilerReport ${PROJECT_SOURCE_DIR}/src/Compiler/Report/*.*)
 file(GLOB FilesSrcCompilerCFG ${PROJECT_SOURCE_DIR}/src/Compiler/CFG/*.*)
 file(GLOB FilesSrcShell ${PROJECT_SOURCE_DIR}/src/Shell/*.*)
@@ -98,6 +99,7 @@ set(
 	${FilesSrcCompilerFrontendGLSL}
 	${FilesSrcCompilerBackend}
 	${FilesSrcCompilerBackendGLSL}
+	${FilesSrcCompilerBackendHLSL}
 	${FilesSrcCompilerReport}
 )
 
@@ -119,6 +121,7 @@ source_group("src\\Frontend\\HLSL" FILES ${FilesSrcCompilerFrontendHLSL})
 source_group("src\\Frontend\\GLSL" FILES ${FilesSrcCompilerFrontendGLSL})
 source_group("src\\Backend" FILES ${FilesSrcCompilerBackend})
 source_group("src\\Backend\\GLSL" FILES ${FilesSrcCompilerBackendGLSL})
+source_group("src\\Backend\\HLSL" FILES ${FilesSrcCompilerBackendHLSL})
 source_group("src\\Report" FILES ${FilesSrcCompilerReport})
 
 if(XSC_ENABLE_SPIRV)

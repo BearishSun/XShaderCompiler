@@ -501,6 +501,9 @@ enum class SamplerType
     SamplerComparisonState, // sampler_state    SamplerComparisonState  samplerShadow
 };
 
+// Converts the specified SamplerType enumeration entry into a string.
+std::string SamplerTypeToString(const SamplerType t);
+
 // Returns true if the specified sampler type is sampler state (i.e. SamplerState or SamplerComparisonState).
 bool IsSamplerStateType(const SamplerType t);
 
