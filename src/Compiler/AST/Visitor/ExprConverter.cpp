@@ -436,7 +436,7 @@ IMPLEMENT_VISIT_PROC(AssignExpr)
     {
         VISIT_DEFAULT(AssignExpr);
     }
-    ConvertExpr(ast->lvalueExpr, AllPostVisit);
+    ConvertExpr(ast->lvalueExpr, AllPostVisit & ~ConvertVectorSubscripts);
     ConvertExpr(ast->rvalueExpr, AllPostVisit);
 
     ConvertExprTargetType(ast->rvalueExpr, ast->lvalueExpr->GetTypeDenoter()->GetAliased());
@@ -548,8 +548,7 @@ void ExprConverter::ConvertExprVectorSubscriptObject(ExprPtr& expr, ObjectExpr* 
             auto vectorTypeDen = objectExpr->GetTypeDenoterFromSubscript();
 
             /* Convert to cast expression */
-            if(!vectorTypeDen->Equals(prefixTypeDen))
-                expr = ASTFactory::MakeCastExpr(vectorTypeDen, objectExpr->prefixExpr);
+            expr = ASTFactory::MakeCastExpr(vectorTypeDen, objectExpr->prefixExpr);
         }
     }
 }
