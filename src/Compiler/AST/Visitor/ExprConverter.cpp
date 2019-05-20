@@ -548,9 +548,7 @@ void ExprConverter::ConvertExprVectorSubscriptObject(ExprPtr& expr, ObjectExpr* 
             auto vectorTypeDen = objectExpr->GetTypeDenoterFromSubscript();
 
             /* Convert to cast expression */
-            if(vectorTypeDen->Equals(prefixTypeDen))
-                expr = objectExpr->prefixExpr;
-            else
+            if(!vectorTypeDen->Equals(prefixTypeDen))
                 expr = ASTFactory::MakeCastExpr(vectorTypeDen, objectExpr->prefixExpr);
         }
     }
