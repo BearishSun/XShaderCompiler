@@ -62,7 +62,7 @@ static OutputShaderVersion GetMinGLSLVersionForTarget(const ShaderTarget shaderT
 
 std::set<std::string> GLSLExtensionAgent::DetermineRequiredExtensions(
     Program& program, OutputShaderVersion& targetGLSLVersion, const ShaderTarget shaderTarget,
-    bool allowExtensions, bool explicitBinding, bool separateShaders, const OnReportProc& onReportExtension)
+    bool allowExtensions, bool explicitBinding, bool separateShaders, bool separateSamplers, const OnReportProc& onReportExtension)
 {
     /* Store parameters */
     shaderTarget_       = shaderTarget;
@@ -91,6 +91,9 @@ std::set<std::string> GLSLExtensionAgent::DetermineRequiredExtensions(
         if (shaderTarget != ShaderTarget::FragmentShader && shaderTarget != ShaderTarget::ComputeShader)
             AcquireExtension(E_GL_ARB_separate_shader_objects);
     }
+
+    if(separateSamplers && IsLanguageVKSL(targetGLSLVersion))
+        AcquireExtension(E_GL_EXT_samplerless_texture_functions);
 
     /* Visit AST program */
     Visit(&program);
@@ -132,7 +135,7 @@ void GLSLExtensionAgent::AcquireExtension(const std::string& extension, const st
             /* Store minimum required GLSL version */
             minGLSLVersion_ = std::max(minGLSLVersion_, requiredVersion);
         }
-        else if (targetGLSLVersion_ < requiredVersion)
+        else if (targetGLSLVersion_ < requiredVersion || (int)requiredVersion == 0)
         {
             if (allowExtensions_)
             {

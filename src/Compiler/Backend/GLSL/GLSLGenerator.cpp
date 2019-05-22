@@ -1186,7 +1186,7 @@ void GLSLGenerator::WriteProgramHeader()
     /* Determine all required GLSL extensions with the GLSL extension agent */
     GLSLExtensionAgent extensionAgent;
     auto requiredExtensions = extensionAgent.DetermineRequiredExtensions(
-        *GetProgram(), versionOut_, GetShaderTarget(), allowExtensions_, explicitBinding_, separateShaders_,
+        *GetProgram(), versionOut_, GetShaderTarget(), allowExtensions_, explicitBinding_, separateShaders_, separateSamplers_,
         [this](const std::string& msg, const AST* ast)
         {
             /* Report either error or warning whether extensions are allowed or not */

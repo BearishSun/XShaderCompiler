@@ -91,6 +91,7 @@ DECL_EXTENSION( GL_EXT_texture_buffer                           );
 DECL_EXTENSION( GL_EXT_texture_cube_map_array                   );
 DECL_EXTENSION( GL_EXT_frag_depth                               );
 DECL_EXTENSION( GL_EXT_shader_texture_lod                       );
+DECL_EXTENSION( GL_EXT_samplerless_texture_functions            );
 
 // GOOGLE
 DECL_EXTENSION( GL_GOOGLE_cpp_style_line_directive              );

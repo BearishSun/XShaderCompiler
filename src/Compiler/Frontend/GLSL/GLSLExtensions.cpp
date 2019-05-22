@@ -80,6 +80,7 @@ const std::map<std::string, int>& GetGLSLExtensionVersionMap()
         { E_GL_EXT_texture_cube_map_array,                  110 },
         { E_GL_EXT_frag_depth,                              110 },
         { E_GL_EXT_shader_texture_lod,                      110 },
+        { E_GL_EXT_samplerless_texture_functions,           000 },
 
         // GOOGLE
         { E_GL_GOOGLE_cpp_style_line_directive,             110 },
