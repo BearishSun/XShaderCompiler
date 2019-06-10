@@ -488,7 +488,7 @@ static std::map<BufferType, std::string> GenerateBufferTypeMapVKSL()
 
     return
     {
-        { T::Buffer,                  "samplerBuffer"    },
+        { T::Buffer,                  "textureBuffer"    },
         { T::StructuredBuffer,        "buffer"           },
         { T::ByteAddressBuffer,       "buffer"           },
 
