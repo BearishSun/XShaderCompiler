@@ -3000,7 +3000,7 @@ void GLSLGenerator::WriteWrapperIntrinsicsMemoryBarrier(const Intrinsic intrinsi
             switch (intrinsic)
             {
                 case Intrinsic::GroupMemoryBarrier:
-                    WriteLn("groupMemoryBarrier();");
+                    WriteLn("memoryBarrierShared();");
                     break;
                 case Intrinsic::DeviceMemoryBarrier:
                     WriteLn("memoryBarrierAtomicCounter();");
