@@ -400,6 +400,8 @@ IMPLEMENT_VISIT_PROC(UniformBufferDecl)
     {
         if (attrib->attributeType == AttributeType::Internal)
             ast->extModifiers |= ExtModifiers::Internal;
+        else if(attrib->attributeType == AttributeType::HideInInspector)
+            ast->extModifiers |= ExtModifiers::HideInInspector;
     }
 #endif
     // END BANSHEE CHANGES
@@ -2508,10 +2510,14 @@ void HLSLAnalyzer::AnalyzeExtAttributes(std::vector<AttributePtr>& attribs, cons
             // BEGIN BANSHEE CHANGES
             case AttributeType::Color:
             case AttributeType::Internal:
+            case AttributeType::HideInInspector:
                 AnalyzeAttributeModifier(attrib.get(), typeDen);
             break;
             case AttributeType::SpriteUV:
                 AnalyzeAttributeSpriteUV(attrib.get(), typeDen);
+            break;
+            case AttributeType::Name:
+                AnalyzeAttributeName(attrib.get(), typeDen);
             break;
             // END BANSHEE CHANGES
 
@@ -2667,6 +2673,8 @@ void HLSLAnalyzer::AnalyzeAttributeModifier(Attribute* attrib, const TypeDenoter
                 bufferTypeDen->extModifiers |= ExtModifiers::Color;
             else if (attrib->attributeType == AttributeType::Internal)
                 bufferTypeDen->extModifiers |= ExtModifiers::Internal;
+            else if (attrib->attributeType == AttributeType::HideInInspector)
+                bufferTypeDen->extModifiers |= ExtModifiers::HideInInspector;
         }
         else if(auto baseTypeDen = typeDen->As<BaseTypeDenoter>())
         {
@@ -2674,6 +2682,8 @@ void HLSLAnalyzer::AnalyzeAttributeModifier(Attribute* attrib, const TypeDenoter
                 baseTypeDen->extModifiers |= ExtModifiers::Color;
             else if (attrib->attributeType == AttributeType::Internal)
                 baseTypeDen->extModifiers |= ExtModifiers::Internal;
+            else if (attrib->attributeType == AttributeType::HideInInspector)
+                baseTypeDen->extModifiers |= ExtModifiers::HideInInspector;
         }
     }
 }
@@ -2689,6 +2699,39 @@ void HLSLAnalyzer::AnalyzeAttributeSpriteUV(Attribute* attrib, const TypeDenoter
                 baseTypeDen->spriteUVRef = objectExpr->ident;
             else
                 Error(R_ExpectedIdentArgInAttribute("spriteuv"), expr);
+        }
+    }
+}
+
+void HLSLAnalyzer::AnalyzeAttributeName(Attribute* attrib, const TypeDenoterPtr& typeDen)
+{
+    if (AnalyzeNumArgsAttribute(attrib, 1, true))
+    {
+        if(auto baseTypeDen = typeDen->As<BaseTypeDenoter>())
+        {
+            auto expr = attrib->arguments[0].get();
+            if (auto literalExpr = expr->As<LiteralExpr>())
+            {
+                if(literalExpr->dataType == DataType::String)
+                    baseTypeDen->readableName = literalExpr->GetStringValue();
+                else
+                    Error(R_ExpectedStringArgInAttribute("name"), expr);
+            }
+            else
+                Error(R_ExpectedStringArgInAttribute("name"), expr);
+        }
+        else if(auto bufferTypeDen = typeDen->As<BufferTypeDenoter>())
+        {
+            auto expr = attrib->arguments[0].get();
+            if (auto literalExpr = expr->As<LiteralExpr>())
+            {
+                if(literalExpr->dataType == DataType::String)
+                    bufferTypeDen->readableName = literalExpr->GetStringValue();
+                else
+                    Error(R_ExpectedStringArgInAttribute("name"), expr);
+            }
+            else
+                Error(R_ExpectedStringArgInAttribute("name"), expr);
         }
     }
 }

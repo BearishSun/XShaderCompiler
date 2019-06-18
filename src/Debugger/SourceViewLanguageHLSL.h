@@ -34,7 +34,8 @@ static const char* keywordsHLSL0 =
     "CalculateLevelOfDetailUnclamped GetDimensions GetSamplePosition Load Sample SampleBias SampleCmp " \
     "SampleCmpLevelZero SampleGrad SampleLevel Load2 Load3 Load4 Consume Store Store2 Store3 Store4 DecrementCounter " \
     "IncrementCounter mips Gather GatherRed GatherGreen GatherBlue GatherAlpha GatherCmp GatherCmpRed GatherCmpGreen " \
-    "GatherCmpBlue GatherCmpAlpha"
+    "GatherCmpBlue GatherCmpAlpha WrapGroupMemoryBarrier WarpDeviceMemoryBarrier WarpAllMemoryBarrier " \
+    "WarpGroupMemoryBarrierWithWarpSync WarpDeviceMemoryBarrierWithWarpSync WarpAllMemoryBarrierWithWarpSync "
 );
 
 static const char* keywordsHLSL1 =

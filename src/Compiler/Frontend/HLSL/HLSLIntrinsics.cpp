@@ -190,6 +190,13 @@ static HLSLIntrinsicsMap GenerateIntrinsicMap()
         { "GatherCmpGreen",                   { T::Texture_GatherCmpGreen_3,         5, 0 } },
         { "GatherCmpBlue",                    { T::Texture_GatherCmpBlue_3,          5, 0 } },
         { "GatherCmpAlpha",                   { T::Texture_GatherCmpAlpha_3,         5, 0 } },
+
+        { "WarpGroupMemoryBarrier",                 { T::WarpGroupMemoryBarrier,                5, 0 } },
+        { "WarpGroupMemoryBarrierWithWarpSync",     { T::WarpGroupMemoryBarrierWithWarpSync,    5, 0 } },
+        { "WarpDeviceMemoryBarrier",                { T::WarpDeviceMemoryBarrier,               5, 0 } },
+        { "WarpDeviceMemoryBarrierWithWarpSync",    { T::WarpDeviceMemoryBarrierWithWarpSync,   5, 0 } },
+        { "WarpAllMemoryBarrier",                   { T::WarpAllMemoryBarrier,                  5, 0 } },
+        { "WarpAllMemoryBarrierWithWarpSync",       { T::WarpAllMemoryBarrierWithWarpSync,      5, 0 } },
     };
 }
 
@@ -597,6 +604,13 @@ static std::map<Intrinsic, IntrinsicSignature> GenerateIntrinsicSignatureMap()
         { T::Image_AtomicXor,                  {                   2, 3 } },
 
         { T::PackHalf2x16,                     { Ret::UInt,        1    } },
+
+        { T::WarpGroupMemoryBarrier,                {                        } },
+        { T::WarpGroupMemoryBarrierWithWarpSync,    {                        } },
+        { T::WarpDeviceMemoryBarrier,               {                        } },
+        { T::WarpDeviceMemoryBarrierWithWarpSync,   {                        } },
+        { T::WarpAllMemoryBarrier,                  {                        } },
+        { T::WarpAllMemoryBarrierWithWarpSync,      {                        } },
     };
 }
 

@@ -33,7 +33,8 @@ static const char* keywordsGLSL0 =
     "imageAtomicAdd imageAtomicMin imageAtomicMax imageAtomicAnd imageAtomicOr imageAtomicXor imageAtomicExchange " \
     "imageAtomicCompSwap dFdx dFdy fwidth interpolateAtCentroid interpolateAtSample interpolateAtOffset noise1 " \
     "noise2 noise3 noise4 EmitStreamVertex EndStreamPrimitive EmitVertex EndPrimitive barrier memoryBarrier " \
-    "memoryBarrierAtomicCounter memoryBarrierBuffer memoryBarrierShared memoryBarrierImage groupMemoryBarrier"
+    "memoryBarrierAtomicCounter memoryBarrierBuffer memoryBarrierShared memoryBarrierImage groupMemoryBarrier " \
+    "subgroupBarrier subgroupMemoryBarrier subgroupMemoryBarrierShared subgroupMemoryBarrierImage subgroupMemoryBarrierBuffer"
 );
 
 static const char* keywordsGLSL1 =

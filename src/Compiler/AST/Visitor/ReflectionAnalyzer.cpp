@@ -491,6 +491,9 @@ IMPLEMENT_VISIT_PROC(UniformBufferDecl)
         if ((ast->extModifiers & ExtModifiers::Internal) != 0)
             uniform.flags = Reflection::Uniform::Flags::Internal;
 
+        if ((ast->extModifiers & ExtModifiers::HideInInspector) != 0)
+            uniform.flags = Reflection::Uniform::Flags::HideInInspector;
+
         data_->uniforms.push_back(uniform);
 
         for(auto& stmt : ast->varMembers)
@@ -548,7 +551,11 @@ IMPLEMENT_VISIT_PROC(UniformBufferDecl)
                     if ((baseTypeDenoter->extModifiers & ExtModifiers::Color) != 0)
                         uniform.flags |= Reflection::Uniform::Flags::Color;
 
+                    if ((baseTypeDenoter->extModifiers & ExtModifiers::HideInInspector) != 0)
+                        uniform.flags = Reflection::Uniform::Flags::HideInInspector;
+                    
                     uniform.spriteUVRef = baseTypeDenoter->spriteUVRef;
+                    uniform.readableName = baseTypeDenoter->readableName;
 
                     if(decl->defaultValue.available)
                     {
@@ -605,6 +612,9 @@ IMPLEMENT_VISIT_PROC(BufferDeclStmnt)
                 if ((ast->typeDenoter->extModifiers & ExtModifiers::Color) != 0)
                     uniform.flags |= Reflection::Uniform::Flags::Color;
 
+                if ((ast->typeDenoter->extModifiers & ExtModifiers::HideInInspector) != 0)
+                    uniform.flags = Reflection::Uniform::Flags::HideInInspector;
+
                 if (bufferDecl->defaultValue.available)
                 {
                     Reflection::DefaultValue defaultValue;
@@ -614,6 +624,7 @@ IMPLEMENT_VISIT_PROC(BufferDeclStmnt)
                     data_->defaultValues.push_back(defaultValue);
                 }
 
+                uniform.readableName = ast->typeDenoter->readableName;
                 data_->uniforms.push_back(uniform);
 
                 // END BANSHEE CHANGES

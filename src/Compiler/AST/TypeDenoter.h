@@ -90,8 +90,9 @@ struct ExtModifiers
 {
     enum Flags
     {
-        Color = 1 << 0,
-        Internal = 1 << 1
+        Color           = 1 << 0,
+        Internal        = 1 << 1,
+        HideInInspector = 1 << 2
     };
 };
 
@@ -320,6 +321,7 @@ struct BaseTypeDenoter : public TypeDenoter
     // BEGIN BANSHEE CHANGES
     int             extModifiers = 0;
     std::string     spriteUVRef;
+    std::string     readableName;
     // END BANSHEE CHANGES
     #endif
 };
@@ -368,6 +370,7 @@ struct BufferTypeDenoter : public TypeDenoter
 
     // BEGIN BANSHEE CHANGES
     int                 extModifiers        = 0;
+    std::string         readableName;
     // END BANSHEE CHANGES
     #endif
 };

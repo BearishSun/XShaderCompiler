@@ -384,10 +384,11 @@ struct Uniform : Variable
 {
     enum Flags
     {
-        None        = 0,
+        None            = 0,
 
-        Internal    = 1 << 0,
-        Color       = 1 << 1
+        Internal        = 1 << 0,
+        Color           = 1 << 1,
+        HideInInspector = 1 << 2
     };
 
     //! Index of the uniform block this uniform belongs to. -1 if none.
@@ -401,6 +402,9 @@ struct Uniform : Variable
 
     //! In case the parameter is used as a destination for sprite animation UVs, identifier of the texture its animating
     std::string spriteUVRef;
+
+    //! Optional readable name of the uniform, for display in GUI.
+    std::string readableName;
 };
 
 //! Information about a struct type

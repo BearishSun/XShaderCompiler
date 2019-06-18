@@ -924,10 +924,12 @@ static Dictionary<AttributeType> GenerateAttributeTypeDict()
         { "layout",                    T::Layout                    },
 
         // BEGIN BANSHEE CHANGES
-        { "color",                     T::Color },
-        { "internal",                  T::Internal },
-        { "alias",                     T::Alias },
-        { "spriteuv",                  T::SpriteUV },
+        { "color",                     T::Color                     },
+        { "internal",                  T::Internal                  },
+        { "hideInInspector",           T::HideInInspector           },
+        { "alias",                     T::Alias                     },
+        { "spriteuv",                  T::SpriteUV                  },
+        { "name",                      T::Name                      },
 
         // END BANSHEE CHANGES
         #endif

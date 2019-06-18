@@ -660,6 +660,8 @@ enum class AttributeType
     Internal,
     Alias,
     SpriteUV,
+    HideInInspector,
+    Name
     // END BANSHEE CHANGES
 
     #endif
@@ -827,6 +829,12 @@ enum class Intrinsic
     ReverseBits,
     Round,
     RSqrt,
+    WarpGroupMemoryBarrier,
+    WarpGroupMemoryBarrierWithWarpSync,
+    WarpDeviceMemoryBarrier,
+    WarpDeviceMemoryBarrierWithWarpSync,
+    WarpAllMemoryBarrier,
+    WarpAllMemoryBarrierWithWarpSync,
     Saturate,
     Sign,
     Sin,

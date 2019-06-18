@@ -78,7 +78,7 @@ static std::map<Intrinsic, std::string> GenerateIntrinsicMap()
       //{ T::GetRenderTargetSamplePosition,    ""                      },
         { T::GreaterThan,                      "greaterThan"           }, // GLSL only
         { T::GreaterThanEqual,                 "greaterThanEqual"      }, // GLSL only
-        { T::GroupMemoryBarrier,               "groupMemoryBarrier"    },
+        { T::GroupMemoryBarrier,               "memoryBarrierShared"   },
       //{ T::GroupMemoryBarrierWithGroupSync,  ""                      }, // ??? groupMemoryBarrier and barrier
         { T::InterlockedAdd,                   "atomicAdd"             },
         { T::InterlockedAnd,                   "atomicAnd"             },
@@ -256,6 +256,9 @@ static std::map<Intrinsic, std::string> GenerateIntrinsicMap()
         { T::Image_AtomicXor,                  "imageAtomicXor"        }, // GLSL only
 
         { T::PackHalf2x16,                     "packHalf2x16"          }, // GLSL only
+
+        { T::WarpGroupMemoryBarrier,           "subgroupMemoryBarrierShared"    },
+        { T::WarpAllMemoryBarrier,             "subgroupMemoryBarrier"          },
     };
 }
 

@@ -1154,6 +1154,11 @@ const std::set<std::string>& ReservedGLSLKeywords()
         "texelFetchOffset",
         "transpose",
         "trunc",
+        "subgroupMemoryBarrier",
+        "subgroupMemoryBarrierShared",
+        "subgroupMemoryBarrierImage",
+        "subgroupMemoryBarrierBuffer",
+        "subgroupBarrier",
 
         "EmitVertex",
         "EmitStreamVertex",
