@@ -88,6 +88,7 @@ const std::map<std::string, int>& GetGLSLExtensionVersionMap()
 
         // KHR
         { E_GL_KHR_blend_equation_advanced,                 110 },
+        { E_GL_KHR_shader_subgroup_basic,                   000 },
 
         // NV
         { E_GL_NV_geometry_shader_passthrough,              110 },

@@ -26,22 +26,28 @@ GLSLExtensionAgent::GLSLExtensionAgent()
     /* Establish intrinsic-to-extension map */
     intrinsicExtMap_ = std::map<Intrinsic, const char*>
     {
-        { Intrinsic::AsDouble,                  E_GL_ARB_gpu_shader_int64               },
-        { Intrinsic::AsFloat,                   E_GL_ARB_gpu_shader5                    },
-        { Intrinsic::AsInt,                     E_GL_ARB_gpu_shader5                    },
-        { Intrinsic::AsUInt_1,                  E_GL_ARB_gpu_shader5                    },
-        { Intrinsic::FirstBitHigh,              E_GL_ARB_gpu_shader_fp64                },
-        { Intrinsic::FirstBitLow,               E_GL_ARB_gpu_shader_fp64                },
-        { Intrinsic::DDXCoarse,                 E_GL_ARB_derivative_control             },
-        { Intrinsic::DDXFine,                   E_GL_ARB_derivative_control             },
-        { Intrinsic::DDYCoarse,                 E_GL_ARB_derivative_control             },
-        { Intrinsic::DDYFine,                   E_GL_ARB_derivative_control             },
-        { Intrinsic::Texture_QueryLod,          E_GL_ARB_texture_query_lod              },
-        { Intrinsic::Texture_QueryLodUnclamped, E_GL_ARB_texture_query_lod              },
-        { Intrinsic::LdExp,                     E_GL_ARB_gpu_shader_fp64                },
-        { Intrinsic::F16toF32,                  E_GL_ARB_shading_language_packing       },
-        { Intrinsic::F32toF16,                  E_GL_ARB_shading_language_packing       },
-        { Intrinsic::PackHalf2x16,              E_GL_ARB_shading_language_packing       },
+        { Intrinsic::AsDouble,                                  E_GL_ARB_gpu_shader_int64               },
+        { Intrinsic::AsFloat,                                   E_GL_ARB_gpu_shader5                    },
+        { Intrinsic::AsInt,                                     E_GL_ARB_gpu_shader5                    },
+        { Intrinsic::AsUInt_1,                                  E_GL_ARB_gpu_shader5                    },
+        { Intrinsic::FirstBitHigh,                              E_GL_ARB_gpu_shader_fp64                },
+        { Intrinsic::FirstBitLow,                               E_GL_ARB_gpu_shader_fp64                },
+        { Intrinsic::DDXCoarse,                                 E_GL_ARB_derivative_control             },
+        { Intrinsic::DDXFine,                                   E_GL_ARB_derivative_control             },
+        { Intrinsic::DDYCoarse,                                 E_GL_ARB_derivative_control             },
+        { Intrinsic::DDYFine,                                   E_GL_ARB_derivative_control             },
+        { Intrinsic::Texture_QueryLod,                          E_GL_ARB_texture_query_lod              },
+        { Intrinsic::Texture_QueryLodUnclamped,                 E_GL_ARB_texture_query_lod              },
+        { Intrinsic::LdExp,                                     E_GL_ARB_gpu_shader_fp64                },
+        { Intrinsic::F16toF32,                                  E_GL_ARB_shading_language_packing       },
+        { Intrinsic::F32toF16,                                  E_GL_ARB_shading_language_packing       },
+        { Intrinsic::PackHalf2x16,                              E_GL_ARB_shading_language_packing       },
+        { Intrinsic::WarpGroupMemoryBarrier,                    E_GL_KHR_shader_subgroup_basic          },
+        { Intrinsic::WarpGroupMemoryBarrierWithWarpSync,        E_GL_KHR_shader_subgroup_basic          },
+        { Intrinsic::WarpDeviceMemoryBarrier,                   E_GL_KHR_shader_subgroup_basic          },
+        { Intrinsic::WarpDeviceMemoryBarrierWithWarpSync,       E_GL_KHR_shader_subgroup_basic          },
+        { Intrinsic::WarpAllMemoryBarrier,                      E_GL_KHR_shader_subgroup_basic          },
+        { Intrinsic::WarpAllMemoryBarrierWithWarpSync,          E_GL_KHR_shader_subgroup_basic          },
     };
 }
 
@@ -130,7 +136,7 @@ void GLSLExtensionAgent::AcquireExtension(const std::string& extension, const st
     {
         const auto requiredVersion = static_cast<OutputShaderVersion>(it->second);
 
-        if (targetGLSLVersion_ == OutputShaderVersion::GLSL)
+        if (targetGLSLVersion_ == OutputShaderVersion::GLSL && (int)requiredVersion > 0)
         {
             /* Store minimum required GLSL version */
             minGLSLVersion_ = std::max(minGLSLVersion_, requiredVersion);

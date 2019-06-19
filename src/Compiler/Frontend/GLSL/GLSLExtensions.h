@@ -99,6 +99,7 @@ DECL_EXTENSION( GL_GOOGLE_include_directive                     );
 
 // KHR
 DECL_EXTENSION( GL_KHR_blend_equation_advanced                  );
+DECL_EXTENSION( GL_KHR_shader_subgroup_basic                    );
 
 // NV
 DECL_EXTENSION( GL_NV_geometry_shader_passthrough               );
