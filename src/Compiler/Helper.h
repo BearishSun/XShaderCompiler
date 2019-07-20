@@ -141,6 +141,47 @@ inline T FromStringOrDefault(const std::string& s)
     throw std::runtime_error("default template of FromStringOrDefault<T> not implemented");
 }
 
+inline void CropStringRight(std::string& s, std::size_t pos)
+{
+    if (pos < s.size())
+        s.erase(pos, std::string::npos);
+}
+
+template<typename T>
+std::string RealToString(T v)
+{
+    class DotSeparator : public std::numpunct<char>
+    {
+    public:
+        DotSeparator() = default;
+
+    protected:
+        char do_decimal_point() const override
+        {
+            return '.';
+        }
+    };
+
+    std::stringstream ss;
+    ss.imbue(std::locale(std::locale(), new DotSeparator()));
+    ss << v;
+    auto s = ss.str();
+
+    auto posFract = s.find('.');
+    if (posFract != std::string::npos)
+    {
+        auto pos = s.find_last_not_of('0');
+        if (pos != std::string::npos)
+        {
+            if (pos == posFract)
+                CropStringRight(s, pos + 2);
+            else
+                CropStringRight(s, pos + 1);
+        }
+    }
+    return s;
+}
+
 // Returns true if the specified string contains a hexadecimal number.
 inline bool IsHexLiteral(const std::string& s)
 {

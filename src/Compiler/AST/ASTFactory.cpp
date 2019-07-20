@@ -138,7 +138,7 @@ LiteralExprPtr MakeLiteralExprOrNull(const Variant& literalValue)
         case Variant::Types::Int:
             return MakeLiteralExpr(DataType::Int, std::to_string(literalValue.Int()));
         case Variant::Types::Real:
-            return MakeLiteralExpr(DataType::Float, std::to_string(literalValue.Real()));
+            return MakeLiteralExpr(DataType::Float, RealToString(literalValue.Real()));
         default:
             return nullptr;
     }
