@@ -92,7 +92,8 @@ struct ExtModifiers
     {
         Color           = 1 << 0,
         Internal        = 1 << 1,
-        HideInInspector = 1 << 2
+        HideInInspector = 1 << 2,
+        HDR             = 1 << 3
     };
 };
 

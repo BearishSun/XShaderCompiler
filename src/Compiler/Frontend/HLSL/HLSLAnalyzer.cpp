@@ -2511,6 +2511,7 @@ void HLSLAnalyzer::AnalyzeExtAttributes(std::vector<AttributePtr>& attribs, cons
             case AttributeType::Color:
             case AttributeType::Internal:
             case AttributeType::HideInInspector:
+            case AttributeType::HDR:
                 AnalyzeAttributeModifier(attrib.get(), typeDen);
             break;
             case AttributeType::SpriteUV:
@@ -2671,6 +2672,8 @@ void HLSLAnalyzer::AnalyzeAttributeModifier(Attribute* attrib, const TypeDenoter
         {
             if (attrib->attributeType == AttributeType::Color)
                 bufferTypeDen->extModifiers |= ExtModifiers::Color;
+            else if (attrib->attributeType == AttributeType::HDR)
+                bufferTypeDen->extModifiers |= ExtModifiers::HDR;
             else if (attrib->attributeType == AttributeType::Internal)
                 bufferTypeDen->extModifiers |= ExtModifiers::Internal;
             else if (attrib->attributeType == AttributeType::HideInInspector)
@@ -2680,6 +2683,8 @@ void HLSLAnalyzer::AnalyzeAttributeModifier(Attribute* attrib, const TypeDenoter
         {
             if (attrib->attributeType == AttributeType::Color)
                 baseTypeDen->extModifiers |= ExtModifiers::Color;
+            else if (attrib->attributeType == AttributeType::HDR)
+                baseTypeDen->extModifiers |= ExtModifiers::HDR;
             else if (attrib->attributeType == AttributeType::Internal)
                 baseTypeDen->extModifiers |= ExtModifiers::Internal;
             else if (attrib->attributeType == AttributeType::HideInInspector)

@@ -661,7 +661,8 @@ enum class AttributeType
     Alias,
     SpriteUV,
     HideInInspector,
-    Name
+    Name,
+    HDR
     // END BANSHEE CHANGES
 
     #endif

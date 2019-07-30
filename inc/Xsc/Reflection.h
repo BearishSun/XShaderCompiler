@@ -388,7 +388,8 @@ struct Uniform : Variable
 
         Internal        = 1 << 0,
         Color           = 1 << 1,
-        HideInInspector = 1 << 2
+        HideInInspector = 1 << 2,
+        HDR             = 1 << 3
     };
 
     //! Index of the uniform block this uniform belongs to. -1 if none.

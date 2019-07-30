@@ -930,6 +930,7 @@ static Dictionary<AttributeType> GenerateAttributeTypeDict()
         { "alias",                     T::Alias                     },
         { "spriteuv",                  T::SpriteUV                  },
         { "name",                      T::Name                      },
+        { "hdr",                       T::HDR                       },
 
         // END BANSHEE CHANGES
         #endif

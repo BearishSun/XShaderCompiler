@@ -551,6 +551,9 @@ IMPLEMENT_VISIT_PROC(UniformBufferDecl)
                     if ((baseTypeDenoter->extModifiers & ExtModifiers::Color) != 0)
                         uniform.flags |= Reflection::Uniform::Flags::Color;
 
+                    if ((baseTypeDenoter->extModifiers & ExtModifiers::HDR) != 0)
+                        uniform.flags |= Reflection::Uniform::Flags::HDR;
+
                     if ((baseTypeDenoter->extModifiers & ExtModifiers::HideInInspector) != 0)
                         uniform.flags = Reflection::Uniform::Flags::HideInInspector;
                     
@@ -611,6 +614,9 @@ IMPLEMENT_VISIT_PROC(BufferDeclStmnt)
 
                 if ((ast->typeDenoter->extModifiers & ExtModifiers::Color) != 0)
                     uniform.flags |= Reflection::Uniform::Flags::Color;
+
+                if ((ast->typeDenoter->extModifiers & ExtModifiers::HDR) != 0)
+                    uniform.flags |= Reflection::Uniform::Flags::HDR;
 
                 if ((ast->typeDenoter->extModifiers & ExtModifiers::HideInInspector) != 0)
                     uniform.flags = Reflection::Uniform::Flags::HideInInspector;
