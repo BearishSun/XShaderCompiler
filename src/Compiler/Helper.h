@@ -179,6 +179,9 @@ std::string RealToString(T v)
                 CropStringRight(s, pos + 1);
         }
     }
+    else
+        s.push_back('.');
+
     return s;
 }
 
