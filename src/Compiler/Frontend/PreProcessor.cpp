@@ -173,8 +173,11 @@ bool PreProcessor::OnRedefineMacro(const Macro& macro, const Macro& previousMacr
     else if (mismatchBody)
         contextDesc = R_WithMismatchInBody;
 
-    if (auto previousMacroPos = previousMacro.identTkn->Pos())
-        ReportHandler::HintForNextReport(R_PrevDefinitionAt(previousMacroPos.ToString()));
+    if (enableWarnings_)
+    {
+        if (auto previousMacroPos = previousMacro.identTkn->Pos())
+            ReportHandler::HintForNextReport(R_PrevDefinitionAt(previousMacroPos.ToString()));
+    }
 
     Warning(R_MacroRedef(macro.identTkn->Spell(), contextDesc), macro.identTkn.get());
 

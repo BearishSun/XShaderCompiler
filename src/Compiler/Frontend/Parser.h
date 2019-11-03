@@ -214,6 +214,9 @@ class Parser
             return (TknType() == type && Tkn()->Spell() == spell);
         }
 
+    protected:
+        bool                            enableWarnings_         = false;
+
     private:
 
         /* === Structures === */
@@ -253,9 +256,6 @@ class Parser
 
         unsigned int                    unexpectedTokenCounter_ = 0;
         const unsigned int              unexpectedTokenLimit_   = 3; //< this should never be less than 1
-
-        bool                            enableWarnings_         = false;
-
 };
 
 
