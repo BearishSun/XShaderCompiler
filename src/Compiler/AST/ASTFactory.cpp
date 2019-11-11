@@ -51,10 +51,19 @@ CallExprPtr MakeTextureSamplerBindingCallExpr(const ExprPtr& textureObjectExpr, 
 {
     auto ast = MakeAST<CallExpr>();
     {
-        const auto& typeDen = textureObjectExpr->GetTypeDenoter()->GetAliased();
-        if (auto bufferTypeDen = typeDen.As<BufferTypeDenoter>())
+        const auto& bufferTypeDenBase = textureObjectExpr->GetTypeDenoter()->GetAliased();
+        if (auto bufferTypeDen = bufferTypeDenBase.As<BufferTypeDenoter>())
         {
-            ast->typeDenoter    = std::make_shared<SamplerTypeDenoter>(TextureTypeToSamplerType(bufferTypeDen->bufferType));
+            SamplerType samplerType = TextureTypeToSamplerType(bufferTypeDen->bufferType);
+
+            const auto& samplerTypeDenBase = samplerObjectExpr->GetTypeDenoter()->GetAliased();
+            if (auto samplerTypeDen = samplerTypeDenBase.As<SamplerTypeDenoter>())
+            {
+                if(samplerTypeDen->samplerType == SamplerType::SamplerComparisonState)
+                    samplerType = SamplerTypeToShadowSamplerType(samplerType);
+            }
+
+            ast->typeDenoter    = std::make_shared<SamplerTypeDenoter>(samplerType);
             ast->arguments      = { textureObjectExpr, samplerObjectExpr };
         }
     }
