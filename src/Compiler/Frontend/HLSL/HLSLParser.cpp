@@ -654,7 +654,7 @@ StructDeclPtr HLSLParser::ParseStructDecl(bool parseStructTkn, const TokenPtr& i
     GetReportHandler().PushContextDesc(ast->ToString());
     {
         /* Parse member variable declarations */
-        ast->localStmnts = ParseGlobalStmntList();
+        ast->localStmnts = ParseStructStmntList();
         
         for (auto& stmnt : ast->localStmnts)
         {
@@ -930,6 +930,37 @@ StmntPtr HLSLParser::ParseGlobalStmntWithBufferTypeDenoter()
     {
         /* Parse buffer declaration statement with sampler type denoter */
         return ParseBufferDeclStmnt(typeDenoter, identTkn);
+    }
+}
+
+StmntPtr HLSLParser::ParseStructStmnt()
+{
+    if (Is(Tokens::LParen))
+    {
+        /* Parse attributes and statement */
+        auto attribs = ParseAttributeList();
+        auto ast = ParseStructStmntPrimary();
+        ast->attribs = std::move(attribs);
+        return ast;
+    }
+    else
+    {
+        /* Parse statement only */
+        return ParseStructStmntPrimary();
+    }
+}
+
+StmntPtr HLSLParser::ParseStructStmntPrimary()
+{
+    switch (TknType())
+    {
+        case Tokens::Typedef:
+            return ParseAliasDeclStmnt();
+        case Tokens::Void:
+        case Tokens::Inline:
+            return ParseFunctionDeclStmnt();
+        default:
+            return ParseGlobalStmntWithTypeSpecifier();
     }
 }
 
@@ -1566,6 +1597,25 @@ std::vector<StmntPtr> HLSLParser::ParseGlobalStmntList()
         /* Parse next global declaration (ignore techniques and null statements) */
         ParseAndIgnoreTechniquesAndNullStmnts();
         ParseStmntWithCommentOpt(stmnts, std::bind(&HLSLParser::ParseGlobalStmnt, this));
+    }
+
+    AcceptIt();
+
+    return stmnts;
+}
+
+std::vector<StmntPtr> HLSLParser::ParseStructStmntList()
+{
+    std::vector<StmntPtr> stmnts;
+
+    Accept(Tokens::LCurly);
+
+    /* Parse all variable declaration statements */
+    while (!Is(Tokens::RCurly))
+    {
+        /* Parse next global declaration (ignore techniques and null statements) */
+        ParseAndIgnoreTechniquesAndNullStmnts();
+        ParseStmntWithCommentOpt(stmnts, std::bind(&HLSLParser::ParseStructStmnt, this));
     }
 
     AcceptIt();

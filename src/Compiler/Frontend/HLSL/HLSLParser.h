@@ -119,6 +119,8 @@ class HLSLParser : public SLParser
         StmntPtr                        ParseGlobalStmntWithTypeSpecifier();
         StmntPtr                        ParseGlobalStmntWithSamplerTypeDenoter();
         StmntPtr                        ParseGlobalStmntWithBufferTypeDenoter();
+        StmntPtr                        ParseStructStmnt();
+        StmntPtr                        ParseStructStmntPrimary();
         BasicDeclStmntPtr               ParseFunctionDeclStmnt(const TypeSpecifierPtr& returnType = nullptr, const TokenPtr& identTkn = nullptr);
         BasicDeclStmntPtr               ParseUniformBufferDeclStmnt();
         BufferDeclStmntPtr              ParseBufferDeclStmnt(const BufferTypeDenoterPtr& typeDenoter = nullptr, const TokenPtr& identTkn = nullptr);
@@ -148,6 +150,7 @@ class HLSLParser : public SLParser
         CallExprPtr                     ParseCallExprAsTypeCtor(const TypeDenoterPtr& typeDenoter);
 
         std::vector<StmntPtr>           ParseGlobalStmntList();
+        std::vector<StmntPtr>           ParseStructStmntList();
         std::vector<VarDeclStmntPtr>    ParseAnnotationList();
         std::vector<RegisterPtr>        ParseRegisterList(bool parseFirstColon = true);
         std::vector<AttributePtr>       ParseAttributeList();
